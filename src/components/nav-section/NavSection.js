@@ -3,7 +3,8 @@ import { NavLink as RouterLink } from 'react-router-dom';
 // @mui
 import { Box, List, ListItemText } from '@mui/material';
 //
-import SvgColor from "../svg-color";
+import { useNavItem } from '../../context/NavContext';
+import SvgColor from '../svg-color';
 import { StyledNavItem, StyledNavItemIcon } from './styles';
 
 // ----------------------------------------------------------------------
@@ -32,7 +33,14 @@ NavItem.propTypes = {
 
 function NavItem({ item }) {
   const { title, path, info } = item;
-  const icon = '/assets/icons/navbar/ic_analytics.svg'
+  const icon = '/assets/icons/navbar/ic_analytics.svg';
+  // const { selectedItem, setSelectedItem } = useNavItem();
+  const { setMenuItem } = useNavItem();
+
+  const handleClick = () => {
+    // setSelectedItem(item);
+    setMenuItem(item);
+  };
 
   return (
     <StyledNavItem
@@ -45,9 +53,12 @@ function NavItem({ item }) {
           fontWeight: 'fontWeightBold',
         },
       }}
+      onClick={handleClick}
     >
       {/* <StyledNavItemIcon>{icon && icon}</StyledNavItemIcon> */}
-      <StyledNavItemIcon><SvgColor src={icon} sx={{ width: 1, height: 1 }} /></StyledNavItemIcon>
+      <StyledNavItemIcon>
+        <SvgColor src={icon} sx={{ width: 1, height: 1 }} />
+      </StyledNavItemIcon>
 
       <ListItemText disableTypography primary={title} />
 

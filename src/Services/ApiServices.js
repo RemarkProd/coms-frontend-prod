@@ -1393,6 +1393,45 @@ export const createSalesOrderService = async (token, requestBody) => {
   }
 };
 
+// vatpos integration
+export const getSalesMasterDetailsService = async (requestBody) => {
+  const url = requestBody.companyCode
+    ? `http://taxpollbd.com/hssalesapi/api/Sale/GetByDate?fromDate=${requestBody.fromDate}&toDate=${requestBody.toDate}&companyCode=${requestBody.companyCode}`
+    : `http://taxpollbd.com/hssalesapi/api/Sale/GetByDate?fromDate=${requestBody.fromDate}&toDate=${requestBody.toDate}`;
+
+  console.log(url);
+  try {
+    return await axios.get(
+      // `http://taxpollbd.com/hssalesapi/api/Sale/GetByDate?fromDate=${requestBody.fromDate}&toDate=${requestBody.toDate}`
+      url
+    );
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getSalesMasterDetailsByInvoiceService = async (requestBody) => {
+  try {
+    return await axios.get(`http://taxpollbd.com/hssalesapi/api/Sale/GetByInvoice?invoiceNo=${requestBody.invoiceNo}`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const postSalesMasterDetailsService = async (bodyInfo) => {
+  try {
+    return await axios.post(`${usersUrl}vatpos-integration/sales/add`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
 export const getAllWfNotificationsService = async (bodyInfo) => {
   try {
     return await axios.post(`${usersUrl}get-all-wf-notifications`, bodyInfo);
@@ -1620,6 +1659,17 @@ export const updatePerAllPeoplesDetails = async (requestBody, person_id) => {
     return err.message;
   }
 };
+
+export const deletePerAllPeoplesDetails = async (personId) => {
+  try {
+    return await axios.delete(`${usersUrl}delete-per-all-peoples/${personId}`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
 export const updateMtlCategory = async (category_id, mtlcategories) => {
   try {
     // eslint-disable-next-line camelcase
@@ -1666,6 +1716,20 @@ export const getSelectIdsMenus = async (user, user_id) => {
 export const getDrillView = async (loginToken) => {
   try {
     return await axios.get(`${usersUrl}drill-down/view`, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getStandardBarDataView = async (loginToken) => {
+  try {
+    return await axios.get(`${usersUrl}standard-bar-data/view`, {
       headers: {
         Authorization: `Bearer ${loginToken}`,
       },

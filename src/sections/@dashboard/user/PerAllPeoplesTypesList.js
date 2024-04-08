@@ -2,10 +2,10 @@ import PropTypes from 'prop-types';
 // @mui
 import { IconButton, InputAdornment, OutlinedInput, Toolbar, Tooltip, Typography } from '@mui/material';
 import { alpha, styled } from '@mui/material/styles';
-import axios from 'axios';
 // component
 import Iconify from '../../../components/iconify';
-
+// api services
+import { deletePerAllPeoplesDetails } from '../../../Services/ApiServices';
 
 // ----------------------------------------------------------------------
 
@@ -46,20 +46,18 @@ export default function PerAllPeoplesTypesList({ numSelected, filterName, onFilt
     let alertMessage;
     const result = selectedUsers.map(async (element) => {
       try {
-    
-        const response =  await axios.delete(
-            `http://182.160.114.100:5001/delete-per-all-peoples/${element}`
-          );
+        // const response =  await axios.delete(
+        //     `http://182.160.114.100:5001/delete-per-all-peoples/${element}`
+        //   );
+        const response = await deletePerAllPeoplesDetails(element);
 
-         alertMessage = response.status === 200 ? response.data.message : 'Service failed! Try again';
-         alert(`You have Deleted Successfully ${element}`);
+        alertMessage = response.status === 200 ? response.data.message : 'Service failed! Try again';
+        alert(`You have Deleted Successfully ${element}`);
         window.location.reload();
       } catch (err) {
         console.log(err.message);
       }
-      
     });
-    
   };
 
   return (

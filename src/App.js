@@ -10,6 +10,7 @@ import ThemeProvider from './theme';
 import { StyledChart } from './components/chart';
 import ScrollToTop from './components/scroll-to-top';
 
+import { NavItemProvider } from './context/NavContext';
 import { UserProvider } from './context/UserContext';
 
 // ----------------------------------------------------------------------
@@ -22,7 +23,9 @@ export default function App() {
           <ScrollToTop />
           <StyledChart />
           <UserProvider>
-            <Router />
+            <NavItemProvider>
+              <Router />
+            </NavItemProvider>
           </UserProvider>
         </ThemeProvider>
       </BrowserRouter>

@@ -7,6 +7,7 @@ import { alpha } from '@mui/material/styles';
 // import account from '../../../_mock/account';
 // import { getAccountDetailsService } from '../../../Services/GetAccountsDetails';
 import { getUserProfileDetails } from '../../../Services/ApiServices';
+import { useNavItem } from '../../../context/NavContext';
 import { useUser } from '../../../context/UserContext';
 
 // ----------------------------------------------------------------------
@@ -17,6 +18,7 @@ export default function AccountPopover() {
 
   const [account, setAccount] = useState({});
   const { user, loginUser } = useUser();
+  const { removeMenuItem } = useNavItem();
   console.log(user);
 
   useEffect(() => {
@@ -65,6 +67,7 @@ export default function AccountPopover() {
   };
 
   const logout = () => {
+    removeMenuItem();
     loginUser();
     // Logout();
 

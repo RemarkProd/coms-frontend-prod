@@ -6,6 +6,7 @@ import { ListItemText } from '@mui/material';
 import styled from 'styled-components'; // Import styled from styled-components
 //
 import { getLoggedInUserDetails, getUserMenuList } from '../Services/ApiServices';
+import { useNavItem } from '../context/NavContext';
 import { useUser } from '../context/UserContext';
 
 // ----------------------------------------------------------------------
@@ -23,10 +24,7 @@ const StyledScrollMenu = styled.div`
     text-align: center;
     padding: 14px;
     text-decoration: none;
-  }
-
-  .nav-item:hover {
-    background-color: #e0e0e0;
+    cursor: default;
   }
 `;
 
@@ -38,6 +36,8 @@ export default function NavSectionClone() {
   const [account, setAccount] = useState({});
   const { user } = useUser();
   const [userMenus, setUserMenus] = useState([]);
+
+  const { selectedItem, setMenuItem } = useNavItem();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,12 +78,24 @@ export default function NavSectionClone() {
   // Define the maximum height for the list
   const maxListHeight = 200; // Adjust as needed
 
+  const navTitle = selectedItem ? selectedItem.title : '';
+  const navPath = selectedItem ? selectedItem.path : '/dashboard';
+
+  const handleClick = () => {
+    // setSelectedItem(item);
+    setMenuItem(selectedItem);
+  };
+
   return (
     <div style={{ maxHeight: maxListHeight, overflowY: 'auto', marginLeft: '20px', marginRight: '20px' }}>
-      <StyledScrollMenu>
-        {userMenus.map((item, index) => (
+      <StyledScrollMenu onClick={handleClick}>
+        <RouterLink key={navTitle} to={navPath} className="nav-item">
+          <ListItemText disableTypography primary={navTitle} />
+          {/* {selectedItem.info && selectedItem.info} */}
+        </RouterLink>
+        {/* {userMenus.map((item, index) => (
           <NavItem key={item.title} item={item} />
-        ))}
+        ))} */}
       </StyledScrollMenu>
     </div>
   );
@@ -91,18 +103,18 @@ export default function NavSectionClone() {
 
 // ----------------------------------------------------------------------
 
-NavItem.propTypes = {
-  item: PropTypes.object,
-};
+// NavItem.propTypes = {
+//   item: PropTypes.object,
+// };
 
-function NavItem({ item }) {
-  console.log(item);
-  const { title, path, info } = item;
+// function NavItem({ item }) {
+//   console.log(item);
+//   const { title, path, info } = item;
 
-  return (
-    <RouterLink to={path} className="nav-item">
-      <ListItemText disableTypography primary={title} />
-      {info && info}
-    </RouterLink>
-  );
-}
+//   return (
+//     <RouterLink to={path} className="nav-item">
+//       <ListItemText disableTypography primary={title} />
+//       {info && info}
+//     </RouterLink>
+//   );
+// }

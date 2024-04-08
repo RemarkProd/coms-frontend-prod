@@ -72,6 +72,7 @@ import TestSapApiPage from './pages/TestSapApiPage';
 import UpdateAccountPage from './pages/UpdateAccountPage';
 import UpdateBankFormPage from './pages/UpdateBankFormPage';
 import UpdateMtlCategories from './pages/UpdateMtlCategories';
+import VatposIntegrationService from './pages/VatposIntegrationService';
 import ForgetPassword from './pages/forgetPassword';
 
 // ----------------------------------------------------------------------
@@ -192,6 +193,10 @@ export default function Router() {
     {
       path: 'sap',
       element: <TestSapApiPage />,
+    },
+    {
+      path: 'vatSalesMaster',
+      element: <VatposIntegrationService />,
     },
     { path: 'privacypolicypage', element: <PrivacyPolicyPage /> },
     { path: 'termsconditionpage', element: <TermsConditionPage /> },

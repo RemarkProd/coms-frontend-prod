@@ -2,11 +2,11 @@ import { Button } from 'devextreme-react/button';
 import { Chart, Legend, Series, ValueAxis } from 'devextreme-react/chart';
 import PieChart, { Connector, Export, Format, Label, Tooltip } from 'devextreme-react/pie-chart';
 import TreeMap, { Colorizer, Size, Title } from 'devextreme-react/tree-map';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { getStandardBarDataView, getUserProfileDetails } from '../Services/ApiServices';
+import { useUser } from '../context/UserContext';
 import TreeMapBreadcrumbs from './TreeMapBreadcrumbs';
-import { populationByRegions } from './dataDoughnut';
 import service from './dataDrilldown';
-import { dataStandard } from './dataStandard';
 import { citiesPopulation } from './dataTreeMapDrill';
 
 
@@ -28,8 +28,50 @@ function drillInfoClick(node) {
   }
 
 function BarChart() {
+  const [standardBarList, setStandardBarList] = useState([]);
+  const { user } = useUser();
+  const [account, setAccount] = useState({});
   const [isFirstLevel, setIsFirstLevel] = useState(true);
   const [data, setData] = useState(service.filterData(''));
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        if (user) {
+          const accountDetails = await getUserProfileDetails(user); // Assuming this function is defined
+          if (accountDetails.status === 200) {
+            setAccount(accountDetails.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching account details:', error);
+      }
+    }
+
+    fetchData();
+  }, [user]);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        if (account) {
+          console.log(account.user_id);
+          const response = await getStandardBarDataView(user); // Assuming this function is defined
+
+          if (response.status === 200) {
+            setStandardBarList(response.data);
+          }
+          console.log(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching account details:', error);
+      }
+    }
+
+    fetchData();
+  }, [account]);
+
+
   const customizePoint = useCallback(
     () => ({
       color: colors[Number(isFirstLevel)],
@@ -76,11 +118,13 @@ function BarChart() {
     },
     [setDrillInfo],
   );
+  const dataStandard = standardBarList;
   return (
+   
     <div>
       <div>
         <Chart id="chart" title="Standard Bar" dataSource={dataStandard}>
-          <Series valueField="oranges" argumentField="day" name="My oranges" type="bar" color="#ffaa66" />
+          <Series valueField="line_count" argumentField="header_id" name="My oranges" type="bar" color="#ffaa66" />
         </Chart>
       </div>
       <div>
@@ -105,16 +149,16 @@ function BarChart() {
         />
       </div>
       <div>
-        <PieChart id="pie" type="doughnut" title="Doughnut" palette="Soft Pastel" dataSource={populationByRegions}>
-          <Series argumentField="region">
-            <Label visible format="millions">
+        <PieChart id="pie" type="doughnut" title="Doughnut" palette="Soft Pastel" dataSource={dataStandard}>
+          <Series argumentField="line_count">
+            <Label visible format="number">
               <Connector visible />
             </Label>
           </Series>
           <Export enabled />
           <Legend margin={0} horizontalAlignment="right" verticalAlignment="top" />
           <Tooltip enabled customizeTooltip={customizeTooltip}>
-            <Format type="millions" />
+            <Format type="number" />
           </Tooltip>
         </PieChart>
       </div>
@@ -129,7 +173,7 @@ function BarChart() {
         <Size height={440} />
         <Colorizer palette="Soft" />
         <Title
-          text="Drill Down Tree Map"
+          text="Drill Down With Item Master "
           placeholderSize={80}
         />
       </TreeMap>

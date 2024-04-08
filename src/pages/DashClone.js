@@ -4,7 +4,9 @@ import Tabs from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
 import PropTypes from 'prop-types';
 import * as React from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useNavItem } from '../context/NavContext';
 import DashboardAppPage from './DashboardAppPage';
 import DashboardAppPage2 from './DashboardAppPage2';
 
@@ -42,6 +44,12 @@ function a11yProps(index) {
 }
 
 export default function BasicTabs() {
+  const { selectedItem, removeMenuItem } = useNavItem();
+  // console.log(selectedItem);
+  useEffect(() => {
+    removeMenuItem();
+  }, []);
+
   const [value, setValue] = React.useState(0);
   const navigate = useNavigate();
   const handleChange = (event, newValue) => {
