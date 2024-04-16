@@ -9,7 +9,13 @@ import { useEffect, useState } from 'react';
 
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
-import { addUserAssign, getFndUserIds, getMenusDetails, getSelectIdsMenus } from '../Services/ApiServices';
+import {
+  addUserAssign,
+  getFndUserIds,
+  getMenusDetails,
+  getSelectIdsMenus,
+  updateMenuService,
+} from '../Services/ApiServices';
 import { useUser } from '../context/UserContext';
 
 // Add this import statement
@@ -19,13 +25,26 @@ export default function MenuCreation() {
   const { user } = useUser();
   const [userInput, setUserInput] = useState('');
   // const [user, setUser] = useState('');
-  const [showMenuLines, setShowMenuLines] = useState(true);
+  const [showMenuLines, setShowMenuLines] = useState(false);
   const [selectid, setSelectid] = useState('');
   const [list, setList] = useState([]);
   const [menuslist, setMenuslist] = useState([]);
   const [filteredList, setFilteredList] = useState([]);
   const [account, setAccount] = useState({});
   const [selectedItem, setSelectedItem] = useState(null);
+  const [showAssignNewMenuButton, setShowAssignNewMenuButton] = useState(false);
+
+  const [menurows, setMenuRows] = useState([
+    {
+      menuId: '',
+      userId: '',
+      userName: '',
+      fromDate: '',
+      toDate: '',
+      showList: false,
+    },
+  ]);
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -78,46 +97,77 @@ export default function MenuCreation() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // const response = await getSelectIdsMenus(user, selectid);
+        if (menurows[0].userId) {
+          console.log(menurows);
+          const response = await getSelectIdsMenus(user, menurows[0].userId);
+          console.log(response);
+          if (response.status === 200) {
+            setMenuslist(response.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching account details:', error);
+      }
+      // console.log(list);
+    }
+
+    fetchData();
+  }, [menurows]);
+  console.log(menuslist);
+
+  function clearMenu() {
+    setMenuRows([
+      {
+        menuId: '',
+        userId: '',
+        userName: '',
+        fromDate: '',
+        toDate: '',
+        showList: false,
+      },
+    ]);
+    setMenuslist([]);
+  }
   const [count, setCount] = useState(0);
   const saveSubMenus = async () => {
-    console.log('menurows:', menurows.length);
+    try {
+      const filteredArray = menurows.filter((item) => Object.values(item).some((value) => value !== ''));
 
-    const filteredArray = menurows.filter((item) => Object.values(item).some((value) => value !== ''));
+      let c;
+      for (c = count; c < filteredArray.length; c++) {
+        const lineInfo = filteredArray[c];
+        console.log(lineInfo);
 
-    let c;
-    for (c = count; c < filteredArray.length; c++) {
-      const lineInfo = filteredArray[c];
-      console.log(lineInfo);
+        const requestBody = {
+          menuId: lineInfo.menuId,
+          userId: lineInfo.userId,
+          fromDate: lineInfo.fromDate,
+          toDate: lineInfo.toDate,
+        };
 
-      const requestBody = {
-        menuId: lineInfo.menuId,
-        userId: lineInfo.userId,
-      };
+        const response = await addUserAssign(requestBody);
 
-      const response = await addUserAssign(requestBody);
-
-      if (response.status === 200) {
-        // Move this line outside the loop to clear the rows only once after all iterations
-        setMenuRows([]);
+        if (response.status !== 200) {
+          throw new Error('Process failed! Try again');
+        }
       }
+      setCount(c);
+      setShowAssignNewMenuButton(false);
+      setShowMenuLines(false);
+      clearMenu();
+
+      alert('Successfully added');
+      navigate('/dashboard/menuassign');
+    } catch (error) {
+      console.log(error);
+      alert('Process failed! Try again');
     }
-    setCount(c);
-    alert('Successfully added');
-    navigate('/dashboard/menuassign');
-
-    window.location.reload();
+    // window.location.reload();
   };
-
-  const [menurows, setMenuRows] = useState([
-    {
-      menuId: '',
-      userId: '',
-      userName: '',
-
-      showList: false,
-    },
-  ]);
-  console.log(userInput);
 
   const handleAddRow = () => {
     if (menurows.length === 1) setShowMenuLines(true);
@@ -145,6 +195,14 @@ export default function MenuCreation() {
     // setSelectedItem(null);
     setMenuRows(updatedRows);
   };
+
+  const handleDateChanges = (index, name, value) => {
+    const updatedList = [...menuslist];
+    updatedList[index][name] = value;
+
+    setMenuslist(updatedList);
+  };
+
   const handleInputItemChange = (index, event) => {
     console.log(event);
     const input = event.target.value;
@@ -187,36 +245,60 @@ export default function MenuCreation() {
     console.log(updatedRows);
     setMenuRows(updatedRows);
     setSelectedItem(item);
-    console.log(menurows);
+    setShowAssignNewMenuButton(true);
   };
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        console.log(selectid);
-        const response = await getSelectIdsMenus(user, selectid);
-        console.log(response);
-        if (response.status === 200) {
-          setMenuslist(response.data);
-        }
-      } catch (error) {
-        console.error('Error fetching account details:', error);
-      }
-      console.log(list);
-    }
-
-    fetchData();
-  }, [selectid]);
 
   const handleClose = () => {
+    clearMenu();
+    // window.location.reload();
+    // setOpen(false);
     navigate('/dashboard/menuassign');
-
-    window.location.reload();
-
-    setOpen(false);
   };
 
-  console.log('mm', menurows);
+  const saveUpdateMenu = async () => {
+    try {
+      await Promise.all(menuslist.map((menuInfo) => updateMenuDates(menuInfo)));
+      alert('Successfully updated!');
+    } catch (error) {
+      console.error('Error updating menu: ', error);
+    }
+  };
+
+  const updateMenuDates = async (value) => {
+    try {
+      const requestBody = {
+        userId: value.user_id,
+        menuId: value.menu_id,
+        fromDate: value.from_date,
+        toDate: value.to_date,
+      };
+      const response = await updateMenuService(user, requestBody);
+    } catch (error) {
+      console.error('Error updating menu dates:', error);
+      throw error;
+    }
+  };
+
+  function getFormattedDate(value) {
+    const date = new Date(value);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Zero-padding the month
+    const day = String(date.getDate()).padStart(2, '0'); // Zero-padding the day
+
+    // return `${day}/${month}/${year}`;
+    return `${year}-${month}-${day}`;
+  }
+
+  function getFormattedCurrentDate() {
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Zero-padding the month
+    const day = String(currentDate.getDate()).padStart(2, '0'); // Zero-padding the day
+
+    return `${year}-${month}-${day}`;
+  }
+
+  const filteredMenuOptions = menuids.map((option) => ({ value: option.menu_id, label: option.menu_description }));
 
   return (
     <>
@@ -224,134 +306,203 @@ export default function MenuCreation() {
         <title> COMS | System Menu </title>
       </Helmet>
       <Container style={{ display: 'flex', flexDirection: 'column' }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
-          <Typography variant="h4" gutterBottom>
-            Assign Menu
+        <Stack direction="row" alignItems="left" mb={3}>
+          <Typography variant="h4" gutterBottom style={{ whiteSpace: 'nowrap', marginRight: '10px' }}>
+            User Menu Assignment
           </Typography>
-        </Stack>
-        <Grid item xs={3}>
-          {/* <Button
-            style={{ marginRight: '10px', fontWeight: 'bold', color: 'black', backgroundColor: 'lightgray' }}
-            onClick={() => {
-              handleAddRow();
+          <input
+            select
+            type="text"
+            name="userId"
+            placeholder="Type to select User"
+            className="form-control"
+            value={menurows[0].userName}
+            onChange={(e) => handleInputItemChange(0, e)}
+            style={{ width: '30%', height: '35px' }}
+          />
+          <div
+            style={{
+              marginLeft: '2px',
+              // border: '1px dotted lightgray',
+              borderRadius: '5px',
+              maxHeight: '70px',
+              width: '40%',
+              overflow: 'auto',
+              // backgroundColor: 'white'
             }}
           >
-            <span style={{ font: 'bold' }}>+ </span> New Menu Assign
-          </Button> */}
-{/* 
-          <Button style={{ fontWeight: 'bold', color: 'black', backgroundColor: 'lightgray' }} onClick={handleClose}>
-            Cancel
-          </Button> */}
-        </Grid>
-        <Grid
-          container
-          spacing={2}
-          style={{ display: 'flex', flexDirection: 'row', marginLeft: '0px', marginTop: '10px' }}
-        >
-          <div>
-            <form className="form-horizontal" style={{ marginTop: '5%' }}>
+            {menurows[0].showList && (
+              <ul>
+                {filteredList.map((item, itemIndex) => (
+                  <MenuItem key={itemIndex} defaultValue={item.user_name} onClick={(e) => handleMenuItemClick(0, item)}>
+                    {item.user_name}
+                  </MenuItem>
+                ))}
+              </ul>
+            )}
+          </div>
+        </Stack>
+        <Grid container spacing={2} style={{ display: 'flex', flexDirection: 'row', marginLeft: '0px' }}>
+          <div style={{ width: '100%' }}>
+            <form className="form-horizontal">
               <div className="table-responsive">
                 <table className="table table-bordered table-striped table-highlight">
                   <thead>
                     <tr>
-                      <th>
+                      {/* <th>
                         User Name <span style={{ color: 'red' }}>*</span>
-                      </th>
-                      <th>Active Menu</th>
-                      <th>
-                        Menu Description <span style={{ color: 'red' }}>*</span>
-                      </th>
+                      </th> */}
+                      <th style={{ width: '40%' }}>Active Menu</th>
+                      <th style={{ width: '30%' }}>From Date</th>
+                      <th>To Date</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {showMenuLines &&
-                      menurows.map((row, index) => (
-                        <tr key={index}>
-                          <td style={{ width: '190px' }}>
+                    {selectedItem &&
+                      menuslist.length > 0 &&
+                      menuslist.map((item, i) => (
+                        <tr key={i}>
+                          <td>{item.menu_description}</td>
+                          <td>
                             <input
-                              select
-                              type="text"
-                              name="userId"
-                              placeholder="Type User Name"
-                              value={row.userName}
-                              onChange={(e) => handleInputItemChange(index, e)}
-                              //  onChange={(e) => handleInputChanges(index, e.target.name, e.target.value)}
-                              style={{ marginTop: '18px' }}
+                              type="date"
+                              className="form-control"
+                              name="from_date"
+                              value={item.from_date ? getFormattedDate(item.from_date) : getFormattedCurrentDate()}
+                              onChange={(e) => handleDateChanges(i, e.target.name, e.target.value)}
                             />
-                            {row.showList && (
-                              <ul style={{ marginTop: '18px' }}>
-                                {filteredList.map((item, itemIndex) => (
-                                  <MenuItem
-                                    key={itemIndex}
-                                    defaultValue={item.user_name}
-                                    onClick={(e) => handleMenuItemClick(index, item)}
-                                  >
-                                    {item.user_name}
-                                  </MenuItem>
-                                ))}
-                              </ul>
-                            )}
                           </td>
-
                           <td>
-                            {selectedItem && menuslist.length > 0
-                              ? menuslist.map((item, i) => (
-                                  <div key={i}>
-                                    <TextField value={item.title} />
-                                  </div>
-                                ))
-                              : null}
-                          </td>
-
-                          <td>
-                            <TextField
-                              select
-                              fullWidth
-                              name="menuId"
-                              label="Menu Name"
-                              autoComplete="given-name"
-                              onChange={(e) => handleInputChanges(index, e.target.name, e.target.value)}
-                              InputLabelProps={{
-                                shrink: true,
-                              }}
-                              style={{ backgroundColor: 'white' }}
-                            >
-                              <MenuItem value={null}>
-                                <em />
-                              </MenuItem>
-                              {/* Check if menuids is defined before mapping over it */}
-                              {menuids &&
-                                menuids.map((id, index) => (
-                                  <MenuItem key={index} value={id.menu_id}>
-                                    {id.menu_description}
-                                  </MenuItem>
-                                ))}
-                            </TextField>
+                            <input
+                              type="date"
+                              className="form-control"
+                              name="to_date"
+                              value={item.to_date ? getFormattedDate(item.to_date) : ''}
+                              onChange={(e) => handleDateChanges(i, e.target.name, e.target.value)}
+                            />
                           </td>
                         </tr>
                       ))}
                   </tbody>
                 </table>
               </div>
-              {showMenuLines && (
-                <Grid item xs={2} style={{ display: 'flex', flexDirection: 'row' }}>
+              <Grid item xs={6} style={{ display: 'flex', flexDirection: 'row' }}>
+                <Button
+                  style={{
+                    marginRight: '10px',
+                    fontWeight: 'bold',
+                    color: 'black',
+                    backgroundColor: 'lightgray',
+                    whiteSpace: 'nowrap',
+                  }}
+                  onClick={saveUpdateMenu}
+                >
+                  Update Menu
+                </Button>
+                <Button
+                  style={{
+                    fontWeight: 'bold',
+                    color: 'black',
+                    backgroundColor: 'lightgray',
+                    whiteSpace: 'nowrap',
+                    marginRight: '10px',
+                  }}
+                  onClick={handleClose}
+                >
+                  Clear
+                </Button>
+                {showAssignNewMenuButton && (
                   <Button
-                    style={{ marginRight: '10px', fontWeight: 'bold', color: 'black', backgroundColor: 'lightgray' }}
-                    onClick={saveSubMenus}
+                    style={{
+                      fontWeight: 'bold',
+                      color: 'black',
+                      backgroundColor: 'lightgray',
+                      whiteSpace: 'nowrap',
+                    }}
+                    onClick={(e) => setShowMenuLines(true)}
                   >
-                    Submit
+                    Assign new menu
                   </Button>
-
-                  <Button
-                    style={{ fontWeight: 'bold', color: 'black', backgroundColor: 'lightgray' }}
-                    onClick={handleClose}
-                  >
-                    Cancel
-                  </Button>
-                </Grid>
-              )}
+                )}
+              </Grid>
             </form>
           </div>
+
+          {showMenuLines && (
+            <div className="table-responsive" style={{ marginTop: '20px', width: '100%' }}>
+              <table className="table table-bordered table-striped table-highlight">
+                <thead>
+                  <tr>
+                    <th style={{ width: '40%' }}>
+                      Select Menu <span style={{ color: 'red' }}>*</span>
+                    </th>
+                    <th style={{ width: '30%' }}>From Date</th>
+                    <th>To Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      {/* <Select
+                        value={menurows[0].menuId}
+                        onChange={(e) => handleInputChanges(0, e.target.name, e.target.value)}
+                        options={filteredMenuOptions}
+                        placeholder="Type to select..."
+                        isClearable
+                      /> */}
+                      <TextField
+                        select
+                        fullWidth
+                        name="menuId"
+                        value={menurows[0].menuId}
+                        onChange={(e) => handleInputChanges(0, e.target.name, e.target.value)}
+                      >
+                        <MenuItem value={null}>
+                          <em />
+                        </MenuItem>
+                        {menuids &&
+                          menuids.map((id, index) => (
+                            <MenuItem key={index} value={id.menu_id}>
+                              {id.menu_description}
+                            </MenuItem>
+                          ))}
+                      </TextField>
+                    </td>
+                    <td>
+                      <input
+                        type="date"
+                        className="form-control"
+                        name="fromDate"
+                        value={menurows[0].fromDate || getFormattedCurrentDate()}
+                        onChange={(e) => handleInputChanges(0, e.target.name, e.target.value)}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="date"
+                        className="form-control"
+                        name="toDate"
+                        value={menurows[0].toDate}
+                        onChange={(e) => handleInputChanges(0, e.target.name, e.target.value)}
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <Button
+                style={{
+                  marginRight: '10px',
+                  fontWeight: 'bold',
+                  color: 'black',
+                  backgroundColor: 'lightgray',
+                  whiteSpace: 'nowrap',
+                }}
+                onClick={saveSubMenus}
+              >
+                Assign menu
+              </Button>
+            </div>
+          )}
         </Grid>
       </Container>
     </>

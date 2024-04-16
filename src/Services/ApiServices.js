@@ -515,6 +515,20 @@ export const getMenusDetails = async (user) => {
   }
 };
 
+export const updateMenuService = async (user, requestInfo) => {
+  try {
+    return await axios.put(`${usersUrl}updateUserMenuAssign/`, requestInfo, {
+      headers: {
+        Authorization: `Bearer ${user}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
 export const getperPerAllPeoplesDetails = async (person_id) => {
   try {
     return await axios.get(`${usersUrl}getper-per-all-peoples/${person_id}`);
