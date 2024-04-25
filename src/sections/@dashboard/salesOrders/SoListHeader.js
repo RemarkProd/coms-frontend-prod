@@ -36,6 +36,7 @@ export default function SoListHead({ order, orderBy, headLabel, onRequestSort })
             key={headCell.id}
             align={headCell.alignRight ? 'right' : 'left'}
             sortDirection={orderBy === headCell.id ? order : false}
+            style={{ whiteSpace: 'nowrap' }}
           >
             <TableSortLabel
               hideSortIcon

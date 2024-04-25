@@ -56,6 +56,7 @@ import { getUserProfileDetails } from './Services/ApiServices';
 import { useUser } from './context/UserContext';
 import AccountFormPage from './pages/AccountFormPage';
 import BankFormPage from './pages/BankFormPage';
+import BrandingAssetsTrackingPage from './pages/BrandingAassetsTrackingPage';
 import DepositEntryForm from './pages/DepositEntryForm';
 import DepositsViewPage from './pages/DepositsViewPage';
 import ManageAccountPage from './pages/ManageAccountPage';
@@ -72,6 +73,7 @@ import TestSapApiPage from './pages/TestSapApiPage';
 import UpdateAccountPage from './pages/UpdateAccountPage';
 import UpdateBankFormPage from './pages/UpdateBankFormPage';
 import UpdateMtlCategories from './pages/UpdateMtlCategories';
+import UserActionAssignmentPage from './pages/UserActionAssignmentPage';
 import VatposIntegrationService from './pages/VatposIntegrationService';
 import ForgetPassword from './pages/forgetPassword';
 
@@ -175,6 +177,8 @@ export default function Router() {
         { path: 'gaugepage', element: <Gauge /> },
         { path: 'barchart', element: <BarChart /> },
         { path: 'piechart', element: <PieChartView /> },
+        { path: 'actionAssignment', element: <UserActionAssignmentPage /> },
+        { path: 'brandingAssets', element: <BrandingAssetsTrackingPage /> },
       ],
     },
 
