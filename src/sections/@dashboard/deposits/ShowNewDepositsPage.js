@@ -416,6 +416,7 @@ export default function UserPage() {
   const exportData = filteredUsers.map((item) => ({
     Status: item.status,
     'Deposit Date': getFormattedDateWithTime(item.deposit_date),
+    'Entry Date': getFormattedDateWithTime(item.creation_date),
     'Company Bank': item.company_bank,
     'Company Account': item.company_account,
     'Company Name': item.company_name,
