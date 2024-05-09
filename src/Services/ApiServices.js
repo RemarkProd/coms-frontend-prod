@@ -1130,13 +1130,29 @@ export const getPerHzCustAccountsDetails = async (cust_account_id) => {
 };
 
 // Bank deposit services
-export const getBankListService = async (loginToken) => {
+export const getBankListService = async () => {
   try {
-    return await axios.get(`${usersUrl}mrlprodbanks/get/list`, {
-      headers: {
-        Authorization: `Bearer ${loginToken}`,
-      },
-    });
+    return await axios.get(`${usersUrl}mrlprodbanks/get/list`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getBankBranchListService = async () => {
+  try {
+    return await axios.get(`${usersUrl}mrlprodbankbranches/get/list`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getBankBranchesByBankService = async (bankId) => {
+  try {
+    return await axios.get(`${usersUrl}mrlprodbankbranches/get/list/${bankId}`);
   } catch (err) {
     console.log(err.message);
 
@@ -1158,20 +1174,7 @@ export const getDepositTypesService = async (loginToken) => {
   }
 };
 
-export const getBankBranchListService = async (loginToken) => {
-  try {
-    return await axios.get(`${usersUrl}mrlprodbankbranches/get/list`, {
-      headers: {
-        Authorization: `Bearer ${loginToken}`,
-      },
-    });
-  } catch (err) {
-    console.log(err.message);
-
-    return err.message;
-  }
-};
-
+// depricated
 export const getBankBranchesService = async (loginToken, bankId) => {
   try {
     return await axios.get(`${usersUrl}mrlprodbankbranches/get/list/${bankId}`, {
@@ -1186,7 +1189,7 @@ export const getBankBranchesService = async (loginToken, bankId) => {
   }
 };
 
-export const getBankAccountsViewService = async (loginToken, bankId) => {
+export const getBankAccountsViewService = async (loginToken) => {
   try {
     return await axios.get(`${usersUrl}bank-deposit/company-bank-account/view`, {
       headers: {
@@ -1257,6 +1260,20 @@ export const getBankDepositViewFilterByToDateService = async (loginToken, reques
   }
 };
 
+export const upldateBankDepositService = async (loginToken, requestBody) => {
+  try {
+    return await axios.post(`${usersUrl}bank-deposit/update/${requestBody.cashReceiptId}`, requestBody, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
 export const getAllBankDepositsForAccountsService = async (loginToken) => {
   try {
     return await axios.get(`${usersUrl}bank-deposit/customer/view/`, {
@@ -1304,6 +1321,21 @@ export const getBankDepositDetailsService = async (loginToken, userId) => {
 export const uploadBankDepositAttachmentService = async (loginToken, bodyInfo) => {
   try {
     return await axios.post(`${usersUrl}bank-deposit/upload`, bodyInfo, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const deleteBankDepositAttachmentService = async (loginToken, bodyInfo) => {
+  try {
+    return await axios.delete(`${usersUrl}bank-deposit/delete`, {
+      data: bodyInfo,
       headers: {
         Authorization: `Bearer ${loginToken}`,
       },
@@ -1962,6 +1994,20 @@ export const getThanasByDistrictService = async (loginToken, districtId) => {
 export const getItemCategoriesService = async (loginToken) => {
   try {
     return await axios.get(`${usersUrl}get-mtl-categories-b`, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getDrillDownCustomerDepositAnalytic = async (loginToken) => {
+  try {
+    return await axios.get(`${usersUrl}drill-down/view/customerDepositAnalytic`, {
       headers: {
         Authorization: `Bearer ${loginToken}`,
       },

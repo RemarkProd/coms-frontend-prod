@@ -50,6 +50,7 @@ import UpdateMtlTransactionTypes from './sections/@dashboard/user/UpdateMtlTrans
 // import getCookieService from './Services/GetCookieService';
 import BarChart from './DataVisualization/BarChart';
 import DrillDownPage from './DataVisualization/DrillDown';
+import DrillDownCustomerDepositAnalytic from './DataVisualization/DrillDownCustomerDepositAnalytic';
 import Gauge from './DataVisualization/Gauge';
 import PieChartView from './DataVisualization/PieChart';
 import { getUserProfileDetails } from './Services/ApiServices';
@@ -179,6 +180,7 @@ export default function Router() {
         { path: 'piechart', element: <PieChartView /> },
         { path: 'actionAssignment', element: <UserActionAssignmentPage /> },
         { path: 'brandingAssets', element: <BrandingAssetsTrackingPage /> },
+        { path: 'drilldowncustomerdepositanalytic', element: <DrillDownCustomerDepositAnalytic /> },
       ],
     },
 

@@ -38,14 +38,20 @@ import Scrollbar from '../components/scrollbar';
 // sections
 import {
   checkUserActionAssignment,
+  deleteBankDepositAttachmentService,
   dowloadBankDepositReceiptService,
   getAllBankDepositsForAccountsService,
   getAllCustomerService,
+  getBankAccountsViewService,
+  getBankBranchesByBankService,
   getBankDepositViewFilterByDateService,
   getBankDepositViewFilterByFromDateService,
   getBankDepositViewFilterByToDateService,
+  getBankListService,
   getDepositTypesService,
   getUserProfileDetails,
+  upldateBankDepositService,
+  uploadBankDepositAttachmentService,
 } from '../Services/ApiServices';
 import Iconify from '../components/iconify';
 import DepositListToolbar from '../sections/@dashboard/deposits/depositListToolbar';
@@ -131,6 +137,7 @@ export default function UserPage() {
   const [USERLIST, setUserList] = useState([]);
   const [customerGroups, setCustomerGroups] = useState([]);
   const [customers, setCustomers] = useState([]);
+  const [rowData, setRowData] = useState({});
 
   const { user } = useUser();
   console.log(user);
@@ -245,6 +252,64 @@ export default function UserPage() {
   }, [account]);
   console.log(depositTypeList);
 
+  const [bankList, setBankList] = useState([]);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await getBankListService();
+
+        if (response.status === 200) {
+          setBankList(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching account details:', error);
+      }
+    }
+
+    fetchData();
+  }, []);
+  console.log(bankList);
+
+  const [bankBranchList, setBankBranchList] = useState([]);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        if (rowData.company_cust_bank_id) {
+          const response = await getBankBranchesByBankService(rowData.company_cust_bank_id);
+
+          if (response.status === 200) {
+            setBankBranchList(response.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching account details:', error);
+      }
+    }
+
+    fetchData();
+  }, [rowData.company_cust_bank_id]);
+  console.log(bankBranchList);
+
+  const [customerBankAccountList, setCustomerBankAccountList] = useState([]);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        if (user) {
+          const response = await getBankAccountsViewService(user);
+
+          if (response.status === 200) {
+            setCustomerBankAccountList(response.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching account details:', error);
+      }
+    }
+
+    fetchData();
+  }, [user]);
+  console.log(customerBankAccountList);
+
   function getFormattedPrice(value) {
     const formattedPrice = new Intl.NumberFormat().format(value);
     console.log(parseInt(formattedPrice, 10));
@@ -289,6 +354,7 @@ export default function UserPage() {
       { id: 'attachment', label: 'Receipt Attachment', alignRight: false },
       { id: 'status', label: 'Status', alignRight: false },
       { id: 'deposit_date', label: 'Deposit Date', alignRight: false },
+      { id: 'entry_date', label: 'Entry Date', alignRight: false },
       { id: 'company_bank_name', label: 'Company Bank', alignRight: false },
       { id: 'deposit_bank_account', label: 'Company Account', alignRight: false },
       { id: 'company_name', label: 'Company Name', alignRight: false },
@@ -314,6 +380,7 @@ export default function UserPage() {
       { id: 'attachment', label: 'Receipt Attachment', alignRight: false },
       { id: 'status', label: 'Status', alignRight: false },
       { id: 'deposit_date', label: 'Deposit Date', alignRight: false },
+      { id: 'entry_date', label: 'Entry Date', alignRight: false },
       { id: 'company_bank_name', label: 'Company Bank', alignRight: false },
       { id: 'deposit_bank_account', label: 'Company Account', alignRight: false },
       { id: 'company_name', label: 'Company Name', alignRight: false },
@@ -537,11 +604,9 @@ export default function UserPage() {
   }));
 
   // edit features
-  const [rowData, setRowData] = useState({});
   const [openEdit, setOpenEdit] = useState(false);
 
   const onValueChange = (e) => {
-    console.log(rowData);
     setRowData({ ...rowData, [e.target.name]: e.target.value });
   };
 
@@ -552,12 +617,49 @@ export default function UserPage() {
     setFilteredPaymentMethodList([]);
     setShowFilteredPaymentMethodList(false);
 
+    setFilteredPaymentTypeList([]);
+    setShowFilteredPaymentTypeList(false);
+
+    setFilteredDepositorBankList([]);
+    setShowFilteredDepositorBankList(false);
+
+    setFilteredDepositorBankBranchList([]);
+    setShowFilteredDepositorBankBranchList(false);
+
+    setFilteredCompanyBankAccountList([]);
+    setShowFilteredCompanyBankAccountList(false);
+
     setOpenEdit(false);
   };
+
   const openEditDialog = (event) => {
     console.log(event);
     setRowData(event);
     setOpenEdit(true);
+  };
+
+  const onEditDeposit = async () => {
+    const requestBody = {
+      depositDate: rowData.deposit_date,
+      amount: rowData.amount,
+      payFromCustomer: rowData.pay_from_customer,
+      depositTypeId: rowData.deposit_type_id,
+      depositorName: rowData.depositor_name,
+      companyCustBankId: rowData.company_cust_bank_id,
+      companyCustBankBranchId: rowData.company_cust_bank_branch_id,
+      remittanceBankAccountId: rowData.remittance_bank_account_id,
+      receiptNumber: rowData.receipt_number,
+      invoiceNumber: rowData.invoice_number,
+      uploadedFilename: rowData.uploaded_filename,
+      remarks: rowData.remarks,
+      lastUpdatedBy: user.user_id,
+      cashReceiptId: rowData.cash_receipt_id,
+    };
+    const response = await upldateBankDepositService(user, requestBody);
+
+    const alertMessage = response.status === 200 ? 'Updated successfully' : 'Process failed! Try again';
+    alert(alertMessage);
+    closeDialog();
   };
 
   const [filteredCustomerList, setFilteredCustomerList] = useState([]);
@@ -613,6 +715,160 @@ export default function UserPage() {
     setRowData({ ...rowData, [name1]: value });
 
     setShowFilteredPaymentMethodList(false);
+  };
+
+  // payment type
+  const paymentTypeList = depositTypeList.filter((value) => value.deposit_type_name === rowData.deposit_type_name);
+  const [filteredPaymentTypeList, setFilteredPaymentTypeList] = useState([]);
+  const [showPaymentTypeList, setShowFilteredPaymentTypeList] = useState(false);
+
+  const handleInputPaymentTypeChange = (event) => {
+    setShowFilteredPaymentTypeList(true);
+
+    const input = event.target.value;
+    const name = 'deposit_type';
+    setRowData({ ...rowData, [name]: input });
+
+    const filtered = paymentTypeList.filter((item) => item.deposit_type.toLowerCase().includes(input.toLowerCase()));
+    setFilteredPaymentTypeList(filtered);
+  };
+
+  const handlePaymentTypeClick = (value) => {
+    const name1 = 'deposit_type';
+    const name2 = 'deposit_type_id';
+    setRowData({
+      ...rowData,
+      [name1]: value.deposit_type,
+      [name2]: value.deposit_type_id,
+    });
+
+    setShowFilteredPaymentTypeList(false);
+  };
+
+  // depositor bank
+  const [filteredDepositorBankList, setFilteredDepositorBankList] = useState([]);
+  const [showDepositorBankList, setShowFilteredDepositorBankList] = useState(false);
+
+  const handleInputDepositorBankChange = (event) => {
+    setShowFilteredDepositorBankList(true);
+
+    const input = event.target.value;
+    const name = 'depositor_bank';
+    setRowData({ ...rowData, [name]: input });
+
+    const filtered = bankList.filter((item) => item.bank_name.toLowerCase().includes(input.toLowerCase()));
+    setFilteredDepositorBankList(filtered);
+  };
+
+  const handleDepositorBankClick = (value) => {
+    const name1 = 'depositor_bank';
+    const name2 = 'company_cust_bank_id';
+    setRowData({
+      ...rowData,
+      [name1]: value.bank_name,
+      [name2]: value.bank_id,
+    });
+
+    setShowFilteredDepositorBankList(false);
+  };
+
+  // depositor bank Branch
+  const [filteredDepositorBankBranchList, setFilteredDepositorBankBranchList] = useState([]);
+  const [showDepositorBankBranchList, setShowFilteredDepositorBankBranchList] = useState(false);
+
+  const handleInputDepositorBankBranchChange = (event) => {
+    setShowFilteredDepositorBankBranchList(true);
+
+    const input = event.target.value;
+    const name = 'depositor_branch';
+    setRowData({ ...rowData, [name]: input });
+
+    const filtered = bankBranchList.filter((item) => item.bank_branch_name.toLowerCase().includes(input.toLowerCase()));
+    setFilteredDepositorBankBranchList(filtered);
+  };
+
+  const handleDepositorBankBranchClick = (value) => {
+    const name1 = 'depositor_branch';
+    const name2 = 'company_cust_bank_branch_id';
+    setRowData({
+      ...rowData,
+      [name1]: value.bank_branch_name,
+      [name2]: value.bank_branch_id,
+    });
+
+    setShowFilteredDepositorBankBranchList(false);
+  };
+
+  // company bank account
+  const [filteredCompanyBankAccountList, setFilteredCompanyBankAccountList] = useState([]);
+  const [showCompanyBankAccountList, setShowFilteredCompanyBankAccountList] = useState(false);
+
+  const handleInputCompanyBankAccountChange = (event) => {
+    setShowFilteredCompanyBankAccountList(true);
+
+    const input = event.target.value;
+    const name = 'company_account';
+    setRowData({ ...rowData, [name]: input });
+
+    const list = customerBankAccountList.filter((value) => value.deposit_type_set_id === rowData.deposit_type_set_id);
+    console.log(list);
+    const filtered = list.filter((item) => item.bank_account_name.toLowerCase().includes(input.toLowerCase()));
+    setFilteredCompanyBankAccountList(filtered);
+  };
+
+  const handleCompanyBankAccountClick = (value) => {
+    const name1 = 'company_account';
+    const name2 = 'remittance_bank_account_id';
+    const name3 = 'company_bank';
+    const name4 = 'company_name';
+    setRowData({
+      ...rowData,
+      [name1]: value.bank_account_name,
+      [name2]: value.bank_account_id,
+      [name3]: value.bank_name,
+      [name4]: value.company_name,
+    });
+
+    setShowFilteredCompanyBankAccountList(false);
+  };
+
+  // image upload and delete method
+  const uplodPhoto = async (event, existedFileName) => {
+    try {
+      const selectedFile = event.target.files[0];
+
+      if (selectedFile) {
+        console.log('Selected file:', selectedFile);
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        const uploadResponse = await uploadBankDepositAttachmentService(user, formData);
+        console.log(uploadResponse.data);
+
+        if (uploadResponse.status === 200) {
+          const requestBody = {
+            fileName: existedFileName,
+          };
+          const deleteResponse = await deleteBankDepositAttachmentService(user, requestBody);
+
+          if (deleteResponse.status === 200) {
+            const input = uploadResponse.data.value;
+            const name = 'uploaded_filename';
+            setRowData({ ...rowData, [name]: input });
+          } else {
+            throw new Error('File delete failed!');
+          }
+        } else {
+          throw new Error('File upload failed!');
+        }
+      } else {
+        throw new Error('File not selected!');
+      }
+    } catch (error) {
+      console.log(error.message);
+      alert('Process failed! Try again');
+    }
   };
 
   return (
@@ -703,6 +959,7 @@ export default function UserPage() {
                       reject_reason,
                       customer_code,
                       customer_group,
+                      creation_date,
                     } = row;
 
                     const selectedUser = selected.indexOf(cash_receipt_id) !== -1;
@@ -724,6 +981,10 @@ export default function UserPage() {
                         <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
                           {/* {getFormattedDate(deposit_date)} */}
                           {getFormattedDateWithTime(deposit_date)}
+                        </TableCell>
+                        <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
+                          {/* {getFormattedDate(deposit_date)} */}
+                          {getFormattedDateWithTime(creation_date)}
                         </TableCell>
                         <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
                           {company_bank}
@@ -921,7 +1182,128 @@ export default function UserPage() {
                           ))}
                         </ul>
                       )}
+                      {rowData.deposit_type_name && (
+                        <TextField
+                          name="deposit_type"
+                          label="Payment Type"
+                          autoComplete="given-name"
+                          fullWidth
+                          style={{ backgroundColor: 'white' }}
+                          InputLabelProps={{ shrink: true }}
+                          value={rowData.deposit_type ? rowData.deposit_type : ''}
+                          onChange={(e) => handleInputPaymentTypeChange(e)}
+                        />
+                      )}
+                      {showPaymentTypeList && (
+                        <ul
+                          style={{
+                            backgroundColor: 'white',
+                            border: '1px solid #ccc',
+                            zIndex: 1,
+                          }}
+                        >
+                          {filteredPaymentTypeList.map((suggestion, index) => (
+                            <MenuItem key={index} onClick={() => handlePaymentTypeClick(suggestion)}>
+                              {suggestion.deposit_type}
+                            </MenuItem>
+                          ))}
+                        </ul>
+                      )}
+                      {rowData.deposit_type_set_id === 11 && (
+                        <TextField
+                          name="depositor_name"
+                          label="Depositor Name"
+                          autoComplete="given-name"
+                          fullWidth
+                          style={{ backgroundColor: 'white' }}
+                          InputLabelProps={{ shrink: true }}
+                          value={rowData.depositor_name ? rowData.depositor_name : ''}
+                          onChange={(e) => onValueChange(e)}
+                        />
+                      )}
+                      {rowData.deposit_type_set_id === 11 && (
+                        <TextField
+                          name="depositor_bank"
+                          label="Depositor Bank"
+                          autoComplete="given-name"
+                          fullWidth
+                          style={{ backgroundColor: 'white' }}
+                          InputLabelProps={{ shrink: true }}
+                          value={rowData.depositor_bank ? rowData.depositor_bank : ''}
+                          onChange={(e) => handleInputDepositorBankChange(e)}
+                        />
+                      )}
+                      {showDepositorBankList && (
+                        <ul
+                          style={{
+                            backgroundColor: 'white',
+                            border: '1px solid #ccc',
+                            zIndex: 1,
+                          }}
+                        >
+                          {filteredDepositorBankList.map((suggestion, index) => (
+                            <MenuItem key={index} onClick={() => handleDepositorBankClick(suggestion)}>
+                              {suggestion.bank_name}
+                            </MenuItem>
+                          ))}
+                        </ul>
+                      )}
+                      {rowData.deposit_type_set_id === 11 && (
+                        <TextField
+                          name="depositor_branch"
+                          label="Depositor Branch"
+                          autoComplete="given-name"
+                          fullWidth
+                          style={{ backgroundColor: 'white' }}
+                          InputLabelProps={{ shrink: true }}
+                          value={rowData.depositor_branch ? rowData.depositor_branch : ''}
+                          onChange={(e) => handleInputDepositorBankBranchChange(e)}
+                        />
+                      )}
+                      {showDepositorBankBranchList && (
+                        <ul
+                          style={{
+                            backgroundColor: 'white',
+                            border: '1px solid #ccc',
+                            zIndex: 1,
+                          }}
+                        >
+                          {filteredDepositorBankBranchList.map((suggestion, index) => (
+                            <MenuItem key={index} onClick={() => handleDepositorBankBranchClick(suggestion)}>
+                              {suggestion.bank_branch_name}
+                            </MenuItem>
+                          ))}
+                        </ul>
+                      )}
+                      {rowData.deposit_type_set_id && (
+                        <TextField
+                          fullWidth
+                          name="company_account"
+                          label={rowData.deposit_type_name === 'MFS' ? 'Company Account' : 'Company Wallet'}
+                          autoComplete="given-name"
+                          style={{ backgroundColor: 'white' }}
+                          InputLabelProps={{ shrink: true }}
+                          value={rowData.company_account ? rowData.company_account : ''}
+                          onChange={(e) => handleInputCompanyBankAccountChange(e)}
+                        />
+                      )}
+                      {showCompanyBankAccountList && (
+                        <ul
+                          style={{
+                            backgroundColor: 'white',
+                            border: '1px solid #ccc',
+                            zIndex: 1,
+                          }}
+                        >
+                          {filteredCompanyBankAccountList.map((suggestion, index) => (
+                            <MenuItem key={index} onClick={() => handleCompanyBankAccountClick(suggestion)}>
+                              {suggestion.bank_account_name}, {suggestion.bank_name}, {suggestion.company_name}
+                            </MenuItem>
+                          ))}
+                        </ul>
+                      )}
                       <TextField
+                        disabled
                         name="company_bank"
                         label="Company Bank"
                         autoComplete="given-name"
@@ -929,9 +1311,9 @@ export default function UserPage() {
                         style={{ backgroundColor: 'white' }}
                         InputLabelProps={{ shrink: true }}
                         value={rowData.company_bank ? rowData.company_bank : ''}
-                        onChange={(e) => onValueChange(e)}
                       />
                       <TextField
+                        disabled
                         name="company_name"
                         label="Company Name"
                         autoComplete="given-name"
@@ -939,8 +1321,25 @@ export default function UserPage() {
                         style={{ backgroundColor: 'white' }}
                         InputLabelProps={{ shrink: true }}
                         value={rowData.company_name ? rowData.company_name : ''}
-                        onChange={(e) => onValueChange(e)}
                       />
+                      {rowData.deposit_type_set_id && (
+                        <TextField
+                          fullWidth
+                          name="receipt_number"
+                          label={
+                            rowData.deposit_type_name === 'CHEQUE'
+                              ? 'Cheque Number'
+                              : rowData.deposit_type_name === 'MFS'
+                              ? 'Transaction ID'
+                              : 'Receipt Number'
+                          }
+                          autoComplete="given-name"
+                          style={{ backgroundColor: 'white' }}
+                          InputLabelProps={{ shrink: true }}
+                          value={rowData.receipt_number ? rowData.receipt_number : ''}
+                          onChange={(e) => onValueChange(e)}
+                        />
+                      )}
                       <TextField
                         name="invoice_number"
                         label="Invoice Number"
@@ -951,17 +1350,25 @@ export default function UserPage() {
                         value={rowData.invoice_number ? rowData.invoice_number : ''}
                         onChange={(e) => onValueChange(e)}
                       />
-                      <TextField
-                        required
-                        type="file"
-                        name="depositAttachment"
-                        label="Deposit Attachment"
-                        autoComplete="given-name"
-                        fullWidth
-                        // style={{ backgroundColor: 'white' }}
-                        // onChange={(e) => uplodPhoto(e)}
-                        InputLabelProps={{ shrink: true }}
-                      />
+                      <div style={{ display: 'flex' }}>
+                        <TextField
+                          required
+                          type="file"
+                          name="uploaded_filename"
+                          label="Deposit Attachment"
+                          autoComplete="given-name"
+                          fullWidth
+                          // style={{ backgroundColor: 'white' }}
+                          onChange={(e) => uplodPhoto(e, rowData.uploaded_filename)}
+                          InputLabelProps={{ shrink: true }}
+                        />
+                        <Button
+                          style={{ marginLeft: '10px', backgroundColor: 'lightgray', color: 'black' }}
+                          onClick={() => viewAttachment(rowData.uploaded_filename)}
+                        >
+                          View
+                        </Button>
+                      </div>
                       <TextareaAutosize
                         name="remarks"
                         placeholder="Remarks"
@@ -971,17 +1378,11 @@ export default function UserPage() {
                       />
                     </Stack>
 
-                    {/* <Container>
-                      <LoadingButton fullWidth size="large" type="submit" variant="contained">
-                        Submit
-                      </LoadingButton>
-                    </Container> */}
-
                     <Grid container spacing={2} style={{ marginTop: '5px' }}>
                       <Grid item xs={3} style={{ display: 'flex' }}>
                         <Button
                           style={{ marginRight: '10px', backgroundColor: 'lightgray', color: 'black' }}
-                          // onClick={rejectDeposits}
+                          onClick={onEditDeposit}
                         >
                           Submit
                         </Button>
