@@ -31,7 +31,7 @@ import {
   TextareaAutosize,
   Typography,
 } from '@mui/material';
-
+import { format, parse } from 'date-fns';
 import { useUser } from '../context/UserContext';
 // components
 import Scrollbar from '../components/scrollbar';
@@ -484,6 +484,12 @@ export default function UserPage() {
   };
   console.log(filterInfo);
 
+  const handleDateChange = (date, name) => {
+    const formattedDate = format(date, 'dd/MM/yy');
+    setFilterInfo({ ...filterInfo, [name]: formattedDate });
+    // setFilterDetails1({ ...filterDetails1, from: formattedDate });
+  };
+
   const [fromDate, setFromDate] = useState(null);
   const handleFromDate = (event) => {
     setPage(0);
@@ -517,13 +523,17 @@ export default function UserPage() {
     }
   };
 
+  const parseDate = (dateString) => {
+    return parse(dateString, 'dd/MM/yy', new Date());
+  };
+
   const handleDateFilter = async () => {
     let filteredData = USERLIST;
 
     if (filterInfo.from && filterInfo.to) {
       const requestBody = {
-        toDepositDate: filterInfo.to,
-        fromDepositDate: filterInfo.from,
+        toDepositDate: parseDate(filterInfo.to),
+        fromDepositDate: parseDate(filterInfo.from),
       };
       const response = await getBankDepositViewFilterByDateService(user, requestBody);
 
@@ -920,6 +930,7 @@ export default function UserPage() {
             onFilterDetails={handleFilterInfo}
             customerGroupList={customerGroups}
             customerList={customers}
+            onDateChange={handleDateChange}
           />
 
           <Scrollbar>

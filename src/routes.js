@@ -56,6 +56,7 @@ import PieChartView from './DataVisualization/PieChart';
 import { getUserProfileDetails } from './Services/ApiServices';
 import { useUser } from './context/UserContext';
 import AccountFormPage from './pages/AccountFormPage';
+import AddShopRoutesPage from './pages/AddShopRoutesPage';
 import BankFormPage from './pages/BankFormPage';
 import BrandingAssetsTrackingPage from './pages/BrandingAassetsTrackingPage';
 import DepositEntryForm from './pages/DepositEntryForm';
@@ -65,6 +66,7 @@ import ManageBankFormPage from './pages/ManageBankFormPage';
 import ManageMtlCategoriesB from './pages/ManageMtlCategoriesB';
 import MtlCategoriesFormPage from './pages/MtlCategoriesFormPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import ShopRouteMasterPage from './pages/ShopRouteMasterPage';
 import ShowAllDeposits from './pages/ShowAllDepositEntriesPage';
 import ShowDepositDetailsPage from './pages/ShowDepositDetailsPage';
 import ShowDepositHistoryPage from './pages/ShowDepositHistoryPage';
@@ -181,6 +183,8 @@ export default function Router() {
         { path: 'actionAssignment', element: <UserActionAssignmentPage /> },
         { path: 'brandingAssets', element: <BrandingAssetsTrackingPage /> },
         { path: 'drilldowncustomerdepositanalytic', element: <DrillDownCustomerDepositAnalytic /> },
+        { path: 'routeMaster', element: <ShopRouteMasterPage /> },
+        { path: 'routeMaster/add', element: <AddShopRoutesPage /> },
       ],
     },
 

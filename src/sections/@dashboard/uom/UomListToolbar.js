@@ -38,9 +38,10 @@ UserListToolbar.propTypes = {
   filterName: PropTypes.string,
   onFilterName: PropTypes.func,
   selectedUsers: PropTypes.array,
+  onDeleteRoutes: PropTypes.func,
 };
 
-export default function UserListToolbar({ numSelected, filterName, onFilterName, selectedUsers }) {
+export default function UserListToolbar({ numSelected, filterName, onFilterName, selectedUsers, onDeleteRoutes }) {
   const deleteSelectedUser = async () => {
     const result = selectedUsers.map(async (element) => {
       try {
@@ -62,6 +63,8 @@ export default function UserListToolbar({ numSelected, filterName, onFilterName,
     });
   };
 
+  const searchPlaceHolder = onDeleteRoutes ? 'Search route...' : 'Search uom...';
+
   return (
     <StyledRoot
       sx={{
@@ -79,7 +82,8 @@ export default function UserListToolbar({ numSelected, filterName, onFilterName,
         <StyledSearch
           value={filterName}
           onChange={onFilterName}
-          placeholder="Search uom..."
+          // placeholder="Search uom..."
+          placeholder={searchPlaceHolder}
           startAdornment={
             <InputAdornment position="start">
               <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled', width: 20, height: 20 }} />
@@ -90,9 +94,15 @@ export default function UserListToolbar({ numSelected, filterName, onFilterName,
 
       {numSelected > 0 ? (
         <Tooltip title="Delete">
-          <IconButton onClick={deleteSelectedUser}>
-            <Iconify icon="eva:trash-2-fill" />
-          </IconButton>
+          {onDeleteRoutes ? (
+            <IconButton onClick={onDeleteRoutes}>
+              <Iconify icon="eva:trash-2-fill" />
+            </IconButton>
+          ) : (
+            <IconButton onClick={deleteSelectedUser}>
+              <Iconify icon="eva:trash-2-fill" />
+            </IconButton>
+          )}
         </Tooltip>
       ) : (
         <Tooltip title="Filter list">

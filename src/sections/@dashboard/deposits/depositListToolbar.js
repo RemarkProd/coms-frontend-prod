@@ -1,5 +1,8 @@
+import { parse } from 'date-fns';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import Select from 'react-select';
 // @mui
 import {
@@ -65,6 +68,7 @@ UserListToolbar.propTypes = {
   onFilterDetails: PropTypes.func,
   customerGroupList: PropTypes.array,
   customerList: PropTypes.array,
+  onDateChange: PropTypes.func,
 };
 
 export default function UserListToolbar({
@@ -84,6 +88,7 @@ export default function UserListToolbar({
   onFilterDetails,
   customerGroupList,
   customerList,
+  onDateChange,
 }) {
   const [open, setOpen] = useState(false);
   const [rowData, setRowData] = useState({});
@@ -160,6 +165,10 @@ export default function UserListToolbar({
 
   const today = new Date().toISOString().split('T')[0];
 
+  const parseDate = (dateString) => {
+    return parse(dateString, 'dd/MM/yy', new Date());
+  };
+
   return (
     <StyledRoot
       sx={{
@@ -189,9 +198,9 @@ export default function UserListToolbar({
       {enableFilter && (
         <Stack ml={1} mr={1}>
           <Stack direction="row" alignItems="center" justifyContent="flex-start">
-            <div className="col-auto" style={{ marginRight: '20px' }}>
+            {/* <div className="col-auto" style={{ marginRight: '20px' }}>
               <label htmlFor="orderNumber" className="col-form-label" style={{ display: 'flex' }}>
-                {/* From <span style={{ color: 'red' }}>*</span> */}
+                From <span style={{ color: 'red' }}>*</span>
                 From
                 <input
                   required
@@ -207,8 +216,39 @@ export default function UserListToolbar({
                   onChange={onFilterDetails}
                 />
               </label>
+            </div> */}
+            <div className="col-auto" style={{ marginRight: '20px', display: 'flex' }}>
+              <span className="col-form-label" style={{ display: 'flex', marginRight: '5px' }}>
+                From
+              </span>
+              <div style={{ marginLeft: '5px', width: '125px' }}>
+                <DatePicker
+                  selected={filterDetails.from ? parseDate(filterDetails.from) : null}
+                  onChange={(date) => onDateChange(date, 'from')}
+                  dateFormat="dd/MM/yy"
+                  maxDate={new Date()}
+                  placeholderText="dd/mm/yy"
+                  className="form-control"
+                />
+              </div>
             </div>
-            <div className="col-auto" style={{ marginRight: '20px' }}>
+            <div className="col-auto" style={{ marginRight: '20px', display: 'flex' }}>
+              <span className="col-form-label" style={{ display: 'flex', marginRight: '5px' }}>
+                To
+              </span>
+              <div style={{ marginLeft: '5px', width: '125px' }}>
+                <DatePicker
+                  selected={filterDetails.to ? parseDate(filterDetails.to) : null}
+                  onChange={(date) => onDateChange(date, 'to')}
+                  dateFormat="dd/MM/yy"
+                  minDate={parseDate(filterDetails.from)}
+                  maxDate={new Date()}
+                  placeholderText="dd/mm/yy"
+                  className="form-control"
+                />
+              </div>
+            </div>
+            {/* <div className="col-auto" style={{ marginRight: '20px' }}>
               <label htmlFor="orderedDate" className="col-form-label" style={{ display: 'flex' }}>
                 To
                 <input
@@ -226,7 +266,7 @@ export default function UserListToolbar({
                   onChange={onFilterDetails}
                 />
               </label>
-            </div>
+            </div> */}
             <div className="col-auto">
               <label htmlFor="amount" className="col-form-label" style={{ display: 'flex' }}>
                 Amount
