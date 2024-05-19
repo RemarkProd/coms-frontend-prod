@@ -334,18 +334,40 @@ export default function UserPage() {
       alert('Process failed! Please try again');
     }
   };
+  const parseDate = (dateString) => parse(dateString, 'dd/MM/yy', new Date());
+  function convertToFrontendDate(backendDateString) {
+    try {
+      const date = new Date(backendDateString);
 
-  const parseDate = (dateString) => {
-    return parse(dateString, 'dd/MM/yy', new Date());
-  };
+      // if (isNaN(date.getTime())) {
+      //   throw new Error('Invalid date');
+      // }
+      const day = date.toLocaleDateString('en-US', { weekday: 'short' });
+      const month = date.toLocaleDateString('en-US', { month: 'short' });
+      const dayOfMonth = date.getDate().toString().padStart(2, '0');
+      const year = date.getFullYear();
+      const time = date.toTimeString().split(' ')[0];
+      // const timezone = date.toTimeString().split(' ')[1];
+      const frontendDateString = `${day} ${month} ${dayOfMonth} ${year} ${time} `;
+
+      return frontendDateString;
+    } catch (error) {
+      console.error('Error while converting date:', error);
+      return null;
+    }
+  }
 
   const handleDateFilter = async () => {
     let filteredData = USERLIST;
 
     if (filterInfo.from && filterInfo.to) {
+      const x = parseDate(filterInfo.to);
+      const y = parseDate(filterInfo.from);
+      const fromDepositDateBackend = convertToFrontendDate(y);
+      const toDepositDateBackend = convertToFrontendDate(x);
       const requestBody = {
-        toDepositDate: parseDate(filterInfo.to),
-        fromDepositDate: parseDate(filterInfo.from),
+        toDepositDate: toDepositDateBackend,
+        fromDepositDate: fromDepositDateBackend,
       };
       const response = await getBankDepositViewFilterByDateService(user, requestBody);
 
