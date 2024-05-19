@@ -5,6 +5,7 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import { sentenceCase } from 'change-case';
+import { format, parse } from 'date-fns';
 import { filter } from 'lodash';
 import { useEffect, useState } from 'react';
 import { CSVLink } from 'react-csv';
@@ -295,6 +296,12 @@ export default function UserPage() {
   };
   console.log(filterInfo);
 
+  const handleDateChange = (date, name) => {
+    const formattedDate = format(date, 'dd/MM/yy');
+    setFilterInfo({ ...filterInfo, [name]: formattedDate });
+    // setFilterDetails1({ ...filterDetails1, from: formattedDate });
+  };
+
   const [fromDate, setFromDate] = useState(null);
   const handleFromDate = (event) => {
     setPage(0);
@@ -328,13 +335,17 @@ export default function UserPage() {
     }
   };
 
+  const parseDate = (dateString) => {
+    return parse(dateString, 'dd/MM/yy', new Date());
+  };
+
   const handleDateFilter = async () => {
     let filteredData = USERLIST;
 
     if (filterInfo.from && filterInfo.to) {
       const requestBody = {
-        toDepositDate: filterInfo.to,
-        fromDepositDate: filterInfo.from,
+        toDepositDate: parseDate(filterInfo.to),
+        fromDepositDate: parseDate(filterInfo.from),
       };
       const response = await getBankDepositViewFilterByDateService(user, requestBody);
 
@@ -363,8 +374,6 @@ export default function UserPage() {
         toDepositDate: filterInfo.to,
       };
       const response = await getBankDepositViewFilterByToDateService(user, requestBody);
-
-      console.log(response.data);
 
       if (response.status === 200) {
         filteredData = response.data.filter((item) => item.status === 'REJECTED');
@@ -482,6 +491,7 @@ export default function UserPage() {
             onFilterDetails={handleFilterInfo}
             customerGroupList={customerGroups}
             customerList={customers}
+            onDateChange={handleDateChange}
           />
 
           <Scrollbar>
