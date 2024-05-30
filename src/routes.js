@@ -56,11 +56,13 @@ import PieChartView from './DataVisualization/PieChart';
 import { getUserProfileDetails } from './Services/ApiServices';
 import { useUser } from './context/UserContext';
 import AccountFormPage from './pages/AccountFormPage';
+import AddShopItems from './pages/AddShopItems';
 import AddShopRoutesPage from './pages/AddShopRoutesPage';
 import BankFormPage from './pages/BankFormPage';
 import BrandingAssetsTrackingPage from './pages/BrandingAassetsTrackingPage';
 import DepositEntryForm from './pages/DepositEntryForm';
 import DepositsViewPage from './pages/DepositsViewPage';
+import ItemsDashBoard from './pages/ItemsDashBoard';
 import ManageAccountPage from './pages/ManageAccountPage';
 import ManageBankFormPage from './pages/ManageBankFormPage';
 import ManageMtlCategoriesB from './pages/ManageMtlCategoriesB';
@@ -81,7 +83,6 @@ import VatposIntegrationService from './pages/VatposIntegrationService';
 import ForgetPassword from './pages/forgetPassword';
 
 // ----------------------------------------------------------------------
-
 export default function Router() {
   const navigate = useNavigate();
 
@@ -185,6 +186,8 @@ export default function Router() {
         { path: 'drilldowncustomerdepositanalytic', element: <DrillDownCustomerDepositAnalytic /> },
         { path: 'routeMaster', element: <ShopRouteMasterPage /> },
         { path: 'routeMaster/add', element: <AddShopRoutesPage /> },
+        { path: 'shopitems/add', element: <AddShopItems /> },
+        { path: 'itemsdashboard', element: <ItemsDashBoard /> },
       ],
     },
 

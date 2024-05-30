@@ -12,21 +12,21 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 // @mui
 import {
-    Card,
-    Checkbox,
-    Container,
-    DialogTitle,
-    Grid,
-    IconButton,
-    Paper,
-    Stack,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TablePagination,
-    TableRow,
-    Typography,
+  Card,
+  Checkbox,
+  Container,
+  DialogTitle,
+  Grid,
+  IconButton,
+  Paper,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TablePagination,
+  TableRow,
+  Typography,
 } from '@mui/material';
 // components
 import Iconify from '../components/iconify';
@@ -134,6 +134,19 @@ export default function UserPage() {
     }
 
     return data;
+  }
+
+  function getFormattedDateWithTime(value) {
+    const dateObject = new Date(value);
+
+    // Extract date and time components
+    const formattedDate = dateObject.toLocaleDateString();
+    const formattedTime = dateObject.toLocaleTimeString();
+    const date = new Date(formattedDate);
+    const year = String(date.getFullYear()).slice(-2);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${day}/${month}/${year}    ${formattedTime}`;
   }
 
   const [open, setOpen] = useState(false);
@@ -407,9 +420,45 @@ export default function UserPage() {
                           {/* <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, inventory_item_id)} /> */}
                         </TableCell>
 
-                        {rowValues.map((value) => (
-                          <TableCell align="left">{value}</TableCell>
-                        ))}
+                        <TableCell style={{ whiteSpace: 'nowrap' }} align="left">
+                          {organization_id}
+                        </TableCell>
+                        <TableCell style={{ whiteSpace: 'nowrap' }} align="left">
+                          {inventory_item_code}
+                        </TableCell>
+                        <TableCell style={{ whiteSpace: 'nowrap' }} align="left">
+                          {description}
+                        </TableCell>
+                        <TableCell style={{ whiteSpace: 'nowrap' }} align="left">
+                          {primary_uom_code}
+                        </TableCell>
+                        <TableCell style={{ whiteSpace: 'nowrap' }} align="left">
+                          {enabled_flag}
+                        </TableCell>
+                        <TableCell style={{ whiteSpace: 'nowrap' }} align="left">
+                          {getFormattedDateWithTime(start_date_active)}
+                        </TableCell>
+                        <TableCell style={{ whiteSpace: 'nowrap' }} align="left">
+                          {getFormattedDateWithTime(end_date_active)}
+                        </TableCell>
+                        <TableCell style={{ whiteSpace: 'nowrap' }} align="left">
+                          {min_minmax_quantity}
+                        </TableCell>
+                        <TableCell style={{ whiteSpace: 'nowrap' }} align="left">
+                          {max_minmax_quantity}
+                        </TableCell>
+                        <TableCell style={{ whiteSpace: 'nowrap' }} align="left">
+                          {minimum_order_quantity}
+                        </TableCell>
+                        <TableCell style={{ whiteSpace: 'nowrap' }} align="left">
+                          {maximum_order_quantity}
+                        </TableCell>
+
+                        {/* {rowValues.map((value) => (
+                          <TableCell style={{ whiteSpace: 'nowrap' }} align="left">
+                            {value}
+                          </TableCell>
+                        ))} */}
 
                         <TableCell padding="checkbox">
                           <IconButton size="large" color="primary" onClick={() => handleClickOpen(row)}>

@@ -537,7 +537,7 @@ export default function UserPage() {
       const year = date.getFullYear();
       const time = date.toTimeString().split(' ')[0];
       // const timezone = date.toTimeString().split(' ')[1];
-      const frontendDateString = `${day} ${month} ${dayOfMonth} ${year} ${time} `;
+      const frontendDateString = `${day} ${month} ${dayOfMonth} ${year} ${time}`;
 
       return frontendDateString;
     } catch (error) {
@@ -550,10 +550,10 @@ export default function UserPage() {
     let filteredData = USERLIST;
 
     if (filterInfo.from && filterInfo.to) {
-      const x = parseDate(filterInfo.to);
-      const y = parseDate(filterInfo.from);
-      const fromDepositDateBackend = convertToFrontendDate(y);
-      const toDepositDateBackend = convertToFrontendDate(x);
+      const toDate = parseDate(filterInfo.to);
+      const fromDate = parseDate(filterInfo.from);
+      const fromDepositDateBackend = convertToFrontendDate(fromDate);
+      const toDepositDateBackend = convertToFrontendDate(toDate);
       const requestBody = {
         toDepositDate: toDepositDateBackend,
         fromDepositDate: fromDepositDateBackend,
@@ -568,6 +568,7 @@ export default function UserPage() {
     }
 
     if (filterInfo.from && !filterInfo.to) {
+      console.log('from');
       const requestBody = {
         fromDepositDate: filterInfo.from,
       };
@@ -581,10 +582,13 @@ export default function UserPage() {
     }
 
     if (filterInfo.to && !filterInfo.from) {
+      console.log('to');
       const requestBody = {
         toDepositDate: filterInfo.to,
       };
       const response = await getBankDepositViewFilterByToDateService(user, requestBody);
+
+      console.log(response.data);
 
       if (response.status === 200) {
         filteredData = response.data;

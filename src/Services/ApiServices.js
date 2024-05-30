@@ -762,6 +762,16 @@ export const addSystemItemsDetails = async (bodyInfo) => {
   }
 };
 
+export const addSystemItemsChildDetails = async (bodyInfo) => {
+  try {
+    return await axios.post(`${usersUrl}add-item-master/child`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
 export const updateSystemItems = async (bodyInfo) => {
   try {
     return await axios.put(`${usersUrl}update-item-master`, bodyInfo);
@@ -1329,6 +1339,77 @@ export const getAllBankDepositsForAccountsService = async (loginToken) => {
   }
 };
 
+export const getShopsListService = async (loginToken) => {
+  try {
+    return await axios.get(`${usersUrl}shop-master/`, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getItemsListService = async (loginToken) => {
+  try {
+    return await axios.get(`${usersUrl}get-item-master/2`, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+export const getDivisionListsService = async (loginToken) => {
+  try {
+    return await axios.get(`${usersUrl}get-bd-area-lists/division`, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getDistrictListsService = async (loginToken, divisionId) => {
+  console.log(divisionId);
+  try {
+    return await axios.get(`${usersUrl}get-bd-area-lists/get-per-division/district/${divisionId}`, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getThanaListsService = async (loginToken, thanaId) => {
+  console.log(thanaId);
+  try {
+    return await axios.get(`${usersUrl}get-bd-area-lists/get-per-district/thana/${thanaId}`, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
 export const getBankDepositDetailsViewService = async (loginToken, userId) => {
   try {
     console.log(userId);
@@ -1391,6 +1472,19 @@ export const deleteBankDepositAttachmentService = async (loginToken, bodyInfo) =
 export const addBankDepositService = async (loginToken, bodyInfo) => {
   try {
     return await axios.post(`${usersUrl}bank-deposit/add`, bodyInfo, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+export const addShopItemsService = async (loginToken, bodyInfo) => {
+  try {
+    return await axios.post(`${usersUrl}branding-assets/add`, bodyInfo, {
       headers: {
         Authorization: `Bearer ${loginToken}`,
       },
@@ -1951,6 +2045,51 @@ export const checkUserActionAssignment = async (loginToken, requestInfo) => {
 export const getBrandingAssetsService = async (loginToken) => {
   try {
     return await axios.get(`${usersUrl}get-branding-assets-detail/`, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getBrandingAssetsItemsService = async (loginToken, shopId) => {
+  console.log(shopId);
+  try {
+    return await axios.get(`${usersUrl}branding-assets/itemsByShop/${shopId}`, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getBrandingAssetsChildItemsService = async (loginToken, itemId) => {
+  console.log(itemId);
+  try {
+    return await axios.get(`${usersUrl}branding-assets/getChildItem/${itemId}`, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getBrandingAssetsItemImagesService = async (loginToken, itemId) => {
+  console.log(itemId);
+  try {
+    return await axios.get(`${usersUrl}branding-assets/viewReviewStatus/${itemId}`, {
       headers: {
         Authorization: `Bearer ${loginToken}`,
       },
