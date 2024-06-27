@@ -6,7 +6,7 @@
 /* eslint-disable react/jsx-key */
 /* eslint-disable camelcase */
 // import Button from '@mui/material/Button';
-import { Button, Container, Grid } from '@mui/material';
+import { Button, Container, Stack } from '@mui/material';
 import { sentenceCase } from 'change-case';
 import { filter } from 'lodash';
 import { useEffect, useRef, useState } from 'react';
@@ -24,6 +24,7 @@ import {
   getItemsListService,
   getShopsListService,
   getUserProfileDetails,
+  updateShopItemsService,
 } from '../Services/ApiServices';
 import DepositListToolbar from '../sections/@dashboard/deposits/shopItemsToolbar';
 
@@ -342,45 +343,84 @@ export default function AddShopItems() {
     console.log(inputValue);
     setInputValue(inputValue);
   };
+
+  const newAssignment = () => {
+    setFilterInfo({
+      shopId: '',
+      shopName: '',
+    });
+    setRows([
+      {
+        description: '',
+        inventory_item_id: '',
+        startDateActive: '',
+        endDateActive: '',
+        remarks: '',
+      },
+    ]);
+    // window.location.reload();
+  };
+
   const filteredOptions = itemIds
     .filter((option) => option.description.toLowerCase().includes(inputValue.toLowerCase()))
     .map((option) => ({ value: option.inventory_item_id, label: `${option.description}` }));
 
-  const [count, setCount] = useState(0);
   const saveSubMenus = async () => {
-    console.log(rows);
     try {
       const filteredArray = rows.filter((item) => Object.values(item).some((value) => value !== ''));
 
-      let c;
-      for (c = count; c < filteredArray.length; c++) {
+      for (let c = 0; c < filteredArray.length; c++) {
         const lineInfo = filteredArray[c];
-        console.log(filterInfo);
-        console.log(lineInfo);
 
-        const requestBody = {
-          shopName: filterInfo.shopName,
-          shopId: filterInfo.shopId,
-          assetId: lineInfo.inventory_item_id,
-          dateEffective: lineInfo.startDateActive,
-          dateIneffective: lineInfo.endDateActive,
-          remarks: lineInfo.remarks,
-        };
-        console.log(requestBody);
-        const response = await addShopItemsService(user, requestBody);
+        if (lineInfo.distributionId) {
+          const requestBody = {
+            distributionId: lineInfo.distributionId,
+            shopName: filterInfo.shopName,
+            shopId: filterInfo.shopId,
+            assetId: lineInfo.inventory_item_id,
+            dateEffective: lineInfo.startDateActive,
+            dateIneffective: lineInfo.endDateActive,
+            remarks: lineInfo.remarks,
+          };
+          const response = await updateShopItemsService(user, requestBody);
 
-        if (response.status !== 200) {
-          throw new Error('Process failed! Try again');
+          if (response.status !== 200) {
+            throw new Error('Process failed! Try again');
+          }
+        } else {
+          const requestBody = {
+            shopName: filterInfo.shopName,
+            shopId: filterInfo.shopId,
+            assetId: lineInfo.inventory_item_id,
+            dateEffective: lineInfo.startDateActive,
+            dateIneffective: lineInfo.endDateActive,
+            remarks: lineInfo.remarks,
+          };
+          const response = await addShopItemsService(user, requestBody);
+
+          if (response.status !== 200) {
+            throw new Error('Process failed! Try again');
+          } else {
+            const name = 'distributionId';
+            const value = response.data.value;
+            filteredArray[c] = { ...filteredArray[c], [name]: value };
+
+            setRows((prevRows) => {
+              const newRows = [...prevRows];
+              const rowIndex = newRows.findIndex((row) => row.inventory_item_id === lineInfo.inventory_item_id);
+              if (rowIndex !== -1) {
+                newRows[rowIndex] = { ...newRows[rowIndex], [name]: value };
+              }
+              return newRows;
+            });
+          }
         }
       }
-      setCount(c);
-
       alert('Successfully added');
     } catch (error) {
-      console.log(error);
+      console.error(error);
       alert('Process failed! Try again');
     }
-    window.location.reload();
   };
 
   return (
@@ -398,25 +438,32 @@ export default function AddShopItems() {
         customerList={customers}
       />
       <Container>
-        <Grid container spacing={2}>
-          <Grid item xs={3} style={{ display: 'flex' }}>
-            <Button
-              style={{ marginRight: '10px', backgroundColor: 'lightgray', color: 'black' }}
-              onClick={saveSubMenus}
-            >
-              Save
-            </Button>
-            <Button
-              style={{ marginRight: '10px', backgroundColor: 'lightgray', color: 'black' }}
-              onClick={handleDeleteRows}
-            >
-              Delete
-            </Button>
-            <Button style={{ backgroundColor: 'lightgray', color: 'black' }} onClick={handleAddRow}>
-              Add Lines
-            </Button>
-          </Grid>
-        </Grid>
+        <Stack direction={'row'}>
+          <Button
+            style={{ marginRight: '10px', backgroundColor: 'lightgray', color: 'black', whiteSpace: 'nowrap' }}
+            onClick={saveSubMenus}
+          >
+            Save
+          </Button>
+          <Button
+            style={{ marginRight: '10px', backgroundColor: 'lightgray', color: 'black', whiteSpace: 'nowrap' }}
+            onClick={handleDeleteRows}
+          >
+            Delete
+          </Button>
+          <Button
+            style={{ marginRight: '10px', backgroundColor: 'lightgray', color: 'black', whiteSpace: 'nowrap' }}
+            onClick={handleAddRow}
+          >
+            Add Lines
+          </Button>
+          <Button
+            style={{ backgroundColor: 'lightgray', color: 'black', whiteSpace: 'nowrap' }}
+            onClick={newAssignment}
+          >
+            New Assignment
+          </Button>
+        </Stack>
       </Container>
       <form className="form-horizontal" style={{ marginTop: '30px', marginLeft: '57px', marginRight: '20px' }}>
         <div className="table-responsive">
@@ -483,6 +530,7 @@ export default function AddShopItems() {
                         name="startDateActive"
                         className="form-control"
                         style={{ backgroundColor: 'white' }}
+                        value={row.startDateActive ? row.startDateActive : ''}
                         onChange={(e) => handleInputChange(index, e.target.name, e.target.value)}
                       />
                     </td>
@@ -492,6 +540,7 @@ export default function AddShopItems() {
                         name="endDateActive"
                         className="form-control"
                         style={{ backgroundColor: 'white' }}
+                        value={row.endDateActive ? row.endDateActive : ''}
                         onChange={(e) => handleInputChange(index, e.target.name, e.target.value)}
                       />
                     </td>
@@ -501,6 +550,7 @@ export default function AddShopItems() {
                         className="form-control"
                         title="Maximum 240 characters are allowed."
                         style={{ height: '35px' }}
+                        value={row.remarks ? row.remarks : ''}
                         onChange={(e) => handleInputChange(index, e.target.name, e.target.value)}
                       />
                     </td>

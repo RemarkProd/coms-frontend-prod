@@ -6,8 +6,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   addSystemItemsChildDetails,
-  addSystemItemsDetails,
-  getItemCategoriesService,
+  addSystemItemsProcedureService,
+  getItemCategoriesService
 } from '../../../Services/ApiServices';
 import { useUser } from '../../../context/UserContext';
 
@@ -136,36 +136,65 @@ export default function ResponsiveDialog() {
     console.log(parentItem);
   };
 
+  const newEntry = () => {
+    setParentItem({});
+    setRows([
+      {
+        inventoryItemId: rowValue.inventory_item_id,
+        organizationId: rowValue.organization_id,
+        inventoryItemCode: rowValue.inventory_item_code,
+        description: rowValue.description,
+        primaryUomCode: rowValue.primary_uom_code,
+        primaryUnitOfMeasure: rowValue.primary_unit_of_measure,
+        enabledFlag: rowValue.enabled_flag,
+        startDateActive: rowValue.start_date_active,
+        endDateActive: rowValue.end_date_active,
+        buyerId: rowValue.buyer_id,
+        minMinmaxQuantity: rowValue.min_minmax_quantity,
+        maxMinmaxQuantity: rowValue.max_minmax_quantity,
+        minimumOrderQuantity: rowValue.minimum_order_quantity,
+        maximumOrderQuantity: rowValue.maximum_order_quantity,
+      },
+    ]);
+  };
+
   const handleClick = async () => {
     const filteredArray = rows.filter((item) => Object.values(item).some((value) => value !== '' && value !== null));
     console.log(filteredArray);
     const currentDay = new Date().toJSON();
 
     try {
+      // const requestBody = {
+      //   inventoryItemCode: parentItem.inventoryItemCode || '',
+      //   description: parentItem.description || '',
+      //   primaryUomCode: parentItem.primaryUomCode || '',
+      //   lastUpdateDate: currentDay,
+      //   lastUpdatedBy: 1,
+      //   creationDate: currentDay,
+      //   createdBy: 1,
+      //   enabledFlag: parentItem.enabledFlag || 'N',
+      //   purchasingItemFlag: 'Y',
+      //   serviceItemFlag: 'Y',
+      //   inventoryItemFlag: 'Y',
+      //   startDateActive: parentItem.startDateActive || null,
+      //   endDateActive: parentItem.endDateActive || null,
+      //   categoryId: parentItem.categoryId || null,
+      // };
       const requestBody = {
         inventoryItemCode: parentItem.inventoryItemCode || '',
         description: parentItem.description || '',
         primaryUomCode: parentItem.primaryUomCode || '',
-        lastUpdateDate: currentDay,
-        lastUpdatedBy: 1,
-        creationDate: currentDay,
-        createdBy: 1,
-        enabledFlag: parentItem.enabledFlag || 'N',
-        purchasingItemFlag: 'Y',
-        serviceItemFlag: 'Y',
-        inventoryItemFlag: 'Y',
         startDateActive: parentItem.startDateActive || null,
-        endDateActive: parentItem.endDateActive || null,
         categoryId: parentItem.categoryId || null,
       };
-      const response = await addSystemItemsDetails(requestBody);
+      const response = await addSystemItemsProcedureService(user, requestBody);
 
       if (response.status === 200) {
-        console.log(response.data);
-
         const remainingItems = [];
 
         for (const lineInfo of filteredArray) {
+          if (!lineInfo.inventoryItemCode) break;
+
           try {
             const itemDetails = lineInfo;
             const lineRequestBody = {
@@ -186,7 +215,7 @@ export default function ResponsiveDialog() {
               endDateActive: itemDetails.endDateActive || null,
               categoryId: response.data.headerInfo[0].category_id || null,
             };
-            const lineResponse = await addSystemItemsChildDetails(lineRequestBody);
+            const lineResponse = await addSystemItemsChildDetails(user, lineRequestBody);
 
             if (lineResponse.status !== 200) {
               remainingItems.push(lineInfo);
@@ -202,8 +231,9 @@ export default function ResponsiveDialog() {
 
         if (remainingItems.length === 0) {
           console.log(remainingItems);
-          navigate('/dashboard/items', { replace: true });
+          // navigate('/dashboard/items', { replace: true });
           // window.location.reload();
+          alert('Successfully added!');
         } else {
           setRows(remainingItems);
           alert('Process failed for some items! Try again later');
@@ -211,6 +241,7 @@ export default function ResponsiveDialog() {
         }
       } else {
         console.log(response);
+
         alert('Process failed! Try again later');
       }
     } catch (err) {
@@ -330,8 +361,14 @@ export default function ResponsiveDialog() {
           >
             Delete
           </Button>
-          <Button style={{ backgroundColor: 'lightgray', color: 'black', whiteSpace: 'nowrap' }} onClick={handleAddRow}>
+          <Button
+            style={{ marginRight: '10px', backgroundColor: 'lightgray', color: 'black', whiteSpace: 'nowrap' }}
+            onClick={handleAddRow}
+          >
             Add Lines
+          </Button>
+          <Button style={{ backgroundColor: 'lightgray', color: 'black', whiteSpace: 'nowrap' }} onClick={newEntry}>
+            New Item
           </Button>
         </Grid>
       </Grid>

@@ -3,8 +3,8 @@
 import axios from 'axios';
 import getCookieService from './GetCookieService';
 
-const usersUrl = 'http://182.160.114.100:5001/';
-// const usersUrl = 'http://182.160.114.100:5003/';
+// const usersUrl = 'http://182.160.114.100:5001/';
+const usersUrl = 'http://182.160.114.100:5003/';
 // const usersUrl = 'http://localhost:5001/';
 
 const sapTokenUrl =
@@ -752,9 +752,13 @@ export const getItemListService = async () => {
   }
 };
 
-export const addSystemItemsDetails = async (bodyInfo) => {
+export const addSystemItemsDetails = async (loginToken, bodyInfo) => {
   try {
-    return await axios.post(`${usersUrl}add-item-master`, bodyInfo);
+    return await axios.post(`${usersUrl}add-item-master`, bodyInfo, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
   } catch (err) {
     console.log(err.message);
 
@@ -762,9 +766,27 @@ export const addSystemItemsDetails = async (bodyInfo) => {
   }
 };
 
-export const addSystemItemsChildDetails = async (bodyInfo) => {
+export const addSystemItemsProcedureService = async (loginToken, bodyInfo) => {
   try {
-    return await axios.post(`${usersUrl}add-item-master/child`, bodyInfo);
+    return await axios.post(`${usersUrl}add-item-master/call/procedure`, bodyInfo, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const addSystemItemsChildDetails = async (loginToken, bodyInfo) => {
+  try {
+    return await axios.post(`${usersUrl}add-item-master/child`, bodyInfo, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
   } catch (err) {
     console.log(err.message);
 
@@ -1482,9 +1504,24 @@ export const addBankDepositService = async (loginToken, bodyInfo) => {
     return err.message;
   }
 };
+
 export const addShopItemsService = async (loginToken, bodyInfo) => {
   try {
     return await axios.post(`${usersUrl}branding-assets/add`, bodyInfo, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const updateShopItemsService = async (loginToken, bodyInfo) => {
+  try {
+    return await axios.post(`${usersUrl}branding-assets/update`, bodyInfo, {
       headers: {
         Authorization: `Bearer ${loginToken}`,
       },
@@ -1526,7 +1563,7 @@ export const rejectBankDepositService = async (loginToken, bodyInfo) => {
 
 export const dowloadBankDepositReceiptService = async (loginToken, bodyInfo) => {
   try {
-    return await axios.post(`${usersUrl}bank-deposit/download`, bodyInfo, {
+    return await axios.post(`${usersUrl}branding-assets/image/download`, bodyInfo, {
       headers: {
         Authorization: `Bearer ${loginToken}`,
       },

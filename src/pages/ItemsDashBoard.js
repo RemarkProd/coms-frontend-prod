@@ -24,8 +24,9 @@ import { useNavigate } from 'react-router-dom';
 // @mui
 import {
   Button,
-  Checkbox,
+  CircularProgress,
   Container,
+  Radio,
   Stack,
   Table,
   TableBody,
@@ -107,6 +108,8 @@ export default function ItemsDashBoard() {
   const [showShops, setShowShops] = useState(true);
   const [showItems, setShowItems] = useState(false);
   const [showChilds, setShowChilds] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [noImages, setNoImages] = useState(false);
 
   const [filterDetails, setFilterDetails] = useState({
     division: '',
@@ -140,11 +143,11 @@ export default function ItemsDashBoard() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handlePrev = () => {
-    setActivateIndex((prevIndex) => (prevIndex === 0 ? 2 : prevIndex - 1));
+    setActivateIndex((prevIndex) => (prevIndex === 0 ? images.length - 1 : prevIndex - 1));
   };
 
   const handleNext = () => {
-    setActivateIndex((prevIndex) => (prevIndex === 2 ? 0 : prevIndex + 1));
+    setActivateIndex((prevIndex) => (prevIndex === images.length - 1 ? 0 : prevIndex + 1));
   };
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -153,6 +156,7 @@ export default function ItemsDashBoard() {
     setPage(0);
     setRowsPerPage(parseInt(event.target.value, 10));
   };
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -366,7 +370,7 @@ export default function ItemsDashBoard() {
     try {
       let response = {};
       response = await getBrandingAssetsItemsService(user, parseInt(specificElement, 10));
-      console.log(response);
+      console.log(response.data);
       if (response.status === 200) setItems(response.data);
       if (response) {
         setShowItems(true);
@@ -380,7 +384,7 @@ export default function ItemsDashBoard() {
     try {
       let response = {};
       response = await getBrandingAssetsChildItemsService(user, specificElements);
-      console.log(response);
+      console.log(response.data);
       if (response.status === 200) setChildItems(response.data);
       if (response) {
         setShowChilds(true);
@@ -391,55 +395,90 @@ export default function ItemsDashBoard() {
   };
   console.log(childItems);
 
-  const [images, setImages] = useState([]);
-  const fetchImageForSpecificItem = async (specificElements) => {
-    console.log(specificElements);
+  const [imageSrc, setImageSrc] = useState([]);
+
+  const viewAttachment = async (value) => {
+    console.log(value);
     try {
-      let response = {};
-      response = await getBrandingAssetsItemImagesService(user, specificElements);
-      console.log(response.data);
-      if (response.status === 200) setImages(response.data);
-      if (response) {
-        setShowChilds(true);
+      const filename = value;
+      const requestBody = { fileName: filename };
+      const response = await dowloadBankDepositReceiptService(user, requestBody);
+      if (response.status === 200) {
+        const base64String = btoa(
+          new Uint8Array(response.data).reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
+        const dataURL = `data:image/jpeg;base64,${base64String}`;
+        setImageSrc((prevImageSrc) => {
+          const updatedImages = [...prevImageSrc, dataURL];
+          if (updatedImages.length === response.data.length) {
+            setLoading(false); // All images have been processed, stop loading
+          }
+          return updatedImages;
+        });
       }
     } catch (error) {
-      console.error('Error fetching account details:', error);
+      console.error('Error during image download:', error);
+      setLoading(false); // Stop loading on error
+    }
+  };
+  console.log(imageSrc);
+
+  console.log('1', imageSrc[0]);
+  console.log('2', imageSrc[1]);
+
+  const [images, setImages] = useState([]);
+  const fetchImageForSpecificItem = async (specificElements) => {
+    try {
+      const response = await getBrandingAssetsItemImagesService(user, specificElements);
+      console.log(response.data);
+      if (response.status === 200 && response.data.length > 0) {
+        setImages(response.data);
+        response.data.forEach((image) => {
+          if (image.uploaded_filename) {
+            viewAttachment(image.uploaded_filename);
+          } else {
+            setImageSrc(['https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png']);
+          }
+        });
+      } else {
+        setNoImages(true);
+      }
+    } catch (error) {
+      console.error('Error fetching images:', error);
+    } finally {
+      setLoading(false);
     }
   };
   console.log(images);
+  console.log(imageSrc);
 
   const handleClick = (event, name) => {
+    console.log(event);
+    console.log(event.target.checked);
+    console.log(name);
     fetchDataForSpecificShop(name);
-    const selectedIndex = selected.indexOf(name);
-    selectedUsers.push(name);
-    let newSelected = [];
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
-    }
-    setSelected(newSelected);
+    setSelected([name]);
+    setShowImage(false);
+    setShowChilds(false);
     console.log('toselectedUsers : ', selectedUsers);
   };
-  const handleItemClick = (event, inventoryItemId) => {
-    fetchDataForSpecificItem(inventoryItemId);
-    fetchImageForSpecificItem(inventoryItemId);
-    const selectedIndex = selectedItem.indexOf(inventoryItemId);
-    let newSelected = [];
+  const [showimage, setShowImage] = useState(false);
+  const handleItemClick = async (event, inventoryItemId) => {
+    // Clear the existing images and set loading state
+    setImageSrc([]);
+    setLoading(true);
+    setNoImages(false);
+    setActivateIndex(0);
 
-    if (selectedIndex === -1) {
-      newSelected = [...selectedItem, inventoryItemId];
-    } else {
-      newSelected = selectedItem.filter((id) => id !== inventoryItemId);
-    }
+    await fetchDataForSpecificItem(inventoryItemId);
+    await fetchImageForSpecificItem(inventoryItemId);
 
-    setSelectedItem(newSelected);
+    console.log(inventoryItemId);
+    console.log(images);
+
+    setSelectedItem([inventoryItemId]); // Only one item can be selected with radio button
+    setShowImage(true);
   };
-
   const handleFilterByName = (event) => {
     setPage(0);
     setFilterName(event.target.value);
@@ -457,6 +496,7 @@ export default function ItemsDashBoard() {
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
   };
+
   const handleRequestItemSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -481,6 +521,41 @@ export default function ItemsDashBoard() {
       setSelectedItem([]);
     }
   };
+  const carouselContentStyle = {
+    display: 'flex',
+    alignItems: 'center', // Center items vertically
+    // justifyContent: 'space-between', // Add space between description and image
+  };
+
+  const carouselDescriptionStyle = {
+    flex: 1, // Allow the description to take up available space
+    marginLeft: '100px', // Add some space between the description and the image
+  };
+
+  const carouselImageStyle = {
+    flex: 1, // Allow the image to take up available space
+    maxWidth: '50%', // Ensure the image does not take up more than half the space
+    marginRight: '100px',
+  };
+
+  const prevButtonStyle = {
+    color: 'black', // Set the color of the button to black
+  };
+
+  const nextButtonStyle = {
+    color: 'black', // Set the color of the button to black
+  };
+
+  const iconStyle = {
+    // SVG icon color will also be black
+    backgroundImage:
+      "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23000' viewBox='0 0 16 16'%3e%3cpath d='M11.354 1.354a.5.5 0 0 0-.708 0L4.5 7.5l6.146 6.146a.5.5 0 0 0 .708-.708L5.207 7.5l6.147-6.146a.5.5 0 0 0 0-.708z'/%3e%3c/svg%3e\")",
+  };
+  const nextIconStyle = {
+    // Use a forward arrow SVG for the next button icon
+    backgroundImage:
+      "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23000' viewBox='0 0 16 16'%3e%3cpath d='M11.354 1.354a.5.5 0 0 0-.708 0L4.5 7.5l6.146 6.146a.5.5 0 0 0 .708-.708L5.207 7.5l6.147-6.146a.5.5 0 0 0 0-.708z' transform='rotate(180 8 8)'/%3e%3c/svg%3e\")",
+  };
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
 
@@ -491,44 +566,7 @@ export default function ItemsDashBoard() {
   const isNotFoundItem = !filteredItems.length && !!filterItem;
   const isNotFoundChild = !filteredChilds.length && !!filterChild;
   const [activateIndex, setActivateIndex] = useState(0);
-  const img = [
-    'https://mdbcdn.b-cdn.net/img/Photos/Slides/img%20(15).webp',
-    'https://mdbcdn.b-cdn.net/img/Photos/Slides/img%20(22).webp',
-    'https://mdbcdn.b-cdn.net/img/Photos/Slides/img%20(23).webp',
-  ];
 
-  const [imageSrc, setImageSrc] = useState();
-  if(images){
-  for (let i = 0; i < images.length; i++) {
-    viewAttachment(images[i]);
-  }
-}
-  const viewAttachment = async (value) => {
-    console.log(value);
-    try {
-      const filename = value;
-      const requestBody = {
-        fileName: filename,
-      };
-      const response = await dowloadBankDepositReceiptService(user, requestBody);
-
-      if (response.status === 200) {
-        const base64String = btoa(
-          new Uint8Array(response.data).reduce((data, byte) => data + String.fromCharCode(byte), '')
-        );
-
-        const dataURL = `data:image/jpeg;base64,${base64String}`;
-        setImageSrc(dataURL);
-      } else {
-        console.log('Image download failed. Server returned status:', response.status);
-      }
-    } catch (error) {
-      console.error('Error during image download:', error);
-    } finally {
-      setOpen(true); // This will be executed regardless of success or failure
-    }
-  };
-  console.log(imageSrc);
   return (
     <>
       <Helmet>
@@ -660,8 +698,8 @@ export default function ItemsDashBoard() {
 
                   return (
                     <TableRow hover key={shop_id} tabIndex={-1} role="checkbox">
-                      <TableCell padding="checkbox">
-                        <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, shop_id)} />
+                      <TableCell padding="radio">
+                        <Radio checked={selectedUser} onChange={(event) => handleClick(event, shop_id)} />
                       </TableCell>
                       <TableCell align="left">{shop_id}</TableCell>
                       <TableCell align="left">{shop_name}</TableCell>
@@ -739,18 +777,18 @@ export default function ItemsDashBoard() {
                     filteredItems.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                       const { inventory_item_id, item_category, item_name } = row;
 
-                      const selectedUser = selectedItem.indexOf(inventory_item_id) !== -1;
+                      const selectedUser = selectedItem.includes(inventory_item_id);
 
                       return (
-                        <TableRow hover key={inventory_item_id} tabIndex={-1} role="checkbox">
-                          <TableCell padding="checkbox">
-                            <Checkbox
+                        <TableRow hover key={inventory_item_id} tabIndex={-1} role="radio">
+                          <TableCell padding="radio">
+                            <Radio
                               checked={selectedUser}
                               onChange={(event) => handleItemClick(event, inventory_item_id)}
                             />
                           </TableCell>
-                          <TableCell align="left">{item_category}</TableCell>
                           <TableCell align="left">{item_name}</TableCell>
+                          <TableCell align="left">{item_category}</TableCell>
                         </TableRow>
                       );
                     })
@@ -796,7 +834,7 @@ export default function ItemsDashBoard() {
             <TablePagination
               rowsPerPageOptions={[5, 10, 25]}
               component="div"
-              count={USERLIST.length}
+              count={items.length}
               rowsPerPage={rowsPerPage}
               page={page}
               onPageChange={handleChangePage}
@@ -826,12 +864,6 @@ export default function ItemsDashBoard() {
 
                       return (
                         <TableRow hover key={inventory_item_id} tabIndex={-1} role="checkbox">
-                          {/* <TableCell padding="checkbox">
-                            <Checkbox
-                              checked={selectedUser}
-                              onChange={(event) => handleClick(event, inventory_item_id)}
-                            />
-                          </TableCell> */}
                           <TableCell align="left">{description}</TableCell>
                           <TableCell align="left">{inventory_item_code}</TableCell>
                         </TableRow>
@@ -879,7 +911,7 @@ export default function ItemsDashBoard() {
             <TablePagination
               rowsPerPageOptions={[5, 10, 25]}
               component="div"
-              count={USERLIST.length}
+              count={childItems.length}
               rowsPerPage={rowsPerPage}
               page={page}
               onPageChange={handleChangePage}
@@ -887,58 +919,83 @@ export default function ItemsDashBoard() {
             />
           </div>
         </div>
-        <div
-          id="carouselBasicExample"
-          className="carousel slide carousel-fade"
-          style={{ marginTop: '20px', marginLeft: '300px', width: '50%' }}
-        >
-          <div className="carousel-indicators">
-            {[0, 1, 2].map((index) => (
-              <button
-                key={index}
-                type="button"
-                className={index === activeIndex ? 'active' : ''}
-                onClick={() => setActiveIndex(index)}
-                aria-current={index === activeIndex ? 'true' : undefined}
-                aria-label={`Slide ${index + 1}`}
-              />
-            ))}
-          </div>
-          <div className="carousel-inner">
-            {img.map((image, index) => {
-              const record = images[index]; // Get the corresponding record for this image
-              return (
-                <div key={index} className={`carousel-item${index === activateIndex ? ' active' : ''}`}>
-                  <img src={image} className="d-block w-100" alt={`Slide ${index + 1}`} />
-                  <div className="carousel-caption d-none d-md-block">
-                    {/* <h5>{`Slide ${index + 1} label`}</h5> */}
-                    <p>
-                      {record ? (
-                        <>
-                          <span>Record Type: {record.RECORD_TYPE}</span>
-                          <br />
-                          <span>Shop Name: {record.shop_name}</span>
-                          <br />
-                          <span>Date Effective: {new Date(record.execution_date).toLocaleDateString()}</span>
-                        </>
-                      ) : (
-                        'No description available'
-                      )}
-                    </p>
-                  </div>
+        {showimage && (
+          <div
+            id="carouselBasicExample"
+            className="carousel slide carousel-fade"
+            style={{ marginTop: '20px', marginLeft: '200px', width: '70%' }}
+          >
+            {loading ? (
+              <div style={{ textAlign: 'center', margin: '20px 0' }}>
+                <CircularProgress />
+                <p>Loading images...</p>
+              </div>
+            ) : noImages ? (
+              <div style={{ textAlign: 'center', margin: '20px 0' }}>
+                <p>No images available for this item.</p>
+              </div>
+            ) : (
+              <>
+                <div className="carousel-inner">
+                  {imageSrc.map((image, index) => {
+                    console.log(images);
+                    const record = images[index];
+
+                    return (
+                      <div key={index} className={`carousel-item${index === activateIndex ? ' active' : ''}`}>
+                        <div style={carouselContentStyle}>
+                          <div style={carouselDescriptionStyle}>
+                            <p>
+                              {record ? (
+                                <>
+                                  <span>Review Status: {record.review_status}</span>
+                                  <br />
+                                  <span>Created By: {record.created_by}</span>
+                                  <br />
+                                  <span>
+                                    Created On:{' '}
+                                    {record.creation_date ? new Date(record.creation_date).toLocaleDateString() : null}
+                                  </span>
+                                  <br />
+                                  <span>Remarks: {record.remarks}</span>
+                                </>
+                              ) : (
+                                'No description available'
+                              )}
+                            </p>
+                          </div>
+                          <div style={carouselImageStyle}>
+                            <img src={image} className="d-block w-80" alt={`Slide ${index + 1}`} />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
+
+                <button
+                  className="carousel-control-prev"
+                  type="button"
+                  onClick={handlePrev}
+                  style={{ ...prevButtonStyle }}
+                >
+                  <span className="carousel-control-prev-icon" aria-hidden="true" style={iconStyle} />
+                  <span className="visually-hidden">Previous</span>
+                </button>
+                <button
+                  className="carousel-control-next"
+                  type="button"
+                  onClick={handleNext}
+                  style={{ ...nextButtonStyle }}
+                  disabled={imageSrc.length <= 1}
+                >
+                  <span className="carousel-control-next-icon" aria-hidden="true" style={nextIconStyle} />
+                  <span className="visually-hidden">Next</span>
+                </button>
+              </>
+            )}
           </div>
-          <button className="carousel-control-prev" type="button" onClick={handlePrev}>
-            <span className="carousel-control-prev-icon" aria-hidden="true" />
-            <span className="visually-hidden">Previous</span>
-          </button>
-          <button className="carousel-control-next" type="button" onClick={handleNext}>
-            <span className="carousel-control-next-icon" aria-hidden="true" />
-            <span className="visually-hidden">Next</span>
-          </button>
-        </div>
+        )}
       </Container>
           
     </>
