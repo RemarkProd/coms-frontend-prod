@@ -23,16 +23,33 @@ import {
 // components
 import ExcelListHead from 'src/sections/@dashboard/user/ExcelListHead';
 import ExcelListToolbar from 'src/sections/@dashboard/user/ExcelListToolbar';
-import { postExcelDataService } from '../Services/ApiServices';
+import { postReconciledDataExcelService } from '../Services/ApiServices';
 import Scrollbar from '../components/scrollbar';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'id', label: 'ID', alignRight: false },
-  { id: 'age', label: 'AGE', alignRight: false },
-  { id: 'name', label: 'NAME', alignRight: false },
-  { id: 'value', label: 'VALUE', alignRight: false },
+  { id: 'id', label: 'Status', alignRight: false },
+  { id: 'value', label: 'remarks', alignRight: false },
+  { id: 'id', label: 'DepositDate', alignRight: false },
+  { id: 'id', label: 'CompanyBank', alignRight: false },
+  { id: 'id', label: 'CompanyAccount', alignRight: false },
+  { id: 'id', label: 'CompanyName', alignRight: false },
+  { id: 'id', label: 'CustomerCode', alignRight: false },
+  { id: 'id', label: 'CustomerName', alignRight: false },
+  { id: 'id', label: 'CustomerGroup', alignRight: false },
+  { id: 'id', label: 'Amount', alignRight: false },
+  { id: 'id', label: 'InvoiceNumber', alignRight: false },
+  { id: 'id', label: 'DepositType', alignRight: false },
+  { id: 'id', label: 'DepositFromBank', alignRight: false },
+  { id: 'id', label: 'DepositFromBranch', alignRight: false },
+  { id: 'id', label: 'ReceiptNumber', alignRight: false },
+  { id: 'age', label: 'Depositor', alignRight: false },
+  { id: 'name', label: 'Employee', alignRight: false },
+  { id: 'value', label: 'UserName', alignRight: false },
+  { id: 'id', label: 'GLDate', alignRight: false },
+  { id: 'id', label: 'GLAmount', alignRight: false },
+  { id: 'id', label: 'CashReceiptId', alignRight: false },
 ];
 const selectedUsers = [];
 
@@ -67,7 +84,7 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function ShowExcelFile() {
+export default function UploadReconciledDepositsExcel() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(null);
 
@@ -92,7 +109,11 @@ export default function ShowExcelFile() {
   const [isDisableBan, setIsDisableBan] = useState(false);
 
   const [selectedUserEmail, setSelectedUserEmail] = useState('');
-  const file_type = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
+  const file_type = [
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-excel',
+    'text/csv',
+  ];
   const handleChange = (e) => {
     const selected_file = e.target.files[0];
     console.log(selected_file.type);
@@ -112,10 +133,32 @@ export default function ShowExcelFile() {
 
   console.log(exceldata);
   const formattedData = exceldata.map((item) => ({
-    id: item.ID,
-    age: item.AGE,
-    name: item.NAME,
-    value: item.VALUE,
+    cashReceiptId: item.CashReceiptId,
+    status: item.Status,
+    depositDate: item.DepositDate,
+    // entryDate: item.EntryDate,
+    // companyBank: item.CompanyBank,
+    // companyAccount: item.CompanyAccount,
+    // companyName: item.CompanyName,
+    payFromCustomer: item.PayFromCustomer,
+    // customerName: item.CustomerName,
+    // customerGroup: item.CustomerGroup,
+    amount: item.Amount,
+    // invoiceNumber: item.InvoiceNumber,
+    // depositType: item.DepositType,
+    // depositFromBank: item.DepositFromBank,
+    // depositFromBranch: item.DepositFromBranch,
+    // receiptNumber: item.ReceiptNumber,
+    glDate: item.GLDate,
+    glAmount: item.GLAmount,
+    // depositor: item.Depositor,
+    // employee: item.Employee,
+    // userName: item.UserName,
+    remarks: item.Remarks,
+    // id: item.ID,
+    // age: item.AGE,
+    // name: item.NAME,
+    // value: item.VALUE,
   }));
   console.log(formattedData);
 
@@ -123,7 +166,7 @@ export default function ShowExcelFile() {
     let postData;
     try {
       if (formattedData) {
-        postData = await postExcelDataService(formattedData);
+        postData = await postReconciledDataExcelService(formattedData);
       }
       console.log('Hola', postData);
     } catch (error) {
@@ -218,13 +261,13 @@ export default function ShowExcelFile() {
   return (
     <>
       <Helmet>
-        <title> HR Locations | COMS </title>
+        <title> Upload Reconciled Deposits | COMS </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Excel Table
+            Upload Reconciled Deposits
           </Typography>
           <div>
             <input type="file" onChange={handleChange} />
@@ -256,10 +299,27 @@ export default function ShowExcelFile() {
                   {paginatedData.length ? (
                     paginatedData.map((info, index) => (
                       <tr key={index}>
-                        <td>{info.ID}</td>
-                        <td>{info.AGE}</td>
-                        <td>{info.NAME}</td>
-                        <td>{info.VALUE}</td>
+                        <td>{info.Status}</td>
+                        <td>{info.Remarks}</td>
+                        <td>{info.DepositDate}</td>
+                        <td>{info.EntryDate}</td>
+                        <td>{info.CompanyBank}</td>
+                        <td>{info.CompanyAccount}</td>
+                        <td>{info.PayFromCustomer}</td>
+                        <td>{info.CustomerName}</td>
+                        <td>{info.CustomerGroup}</td>
+                        <td>{info.Amount}</td>
+                        <td>{info.InvoiceNumber}</td>
+                        <td>{info.DepositType}</td>
+                        <td>{info.DepositFromBank}</td>
+                        <td>{info.DepositFromBranch}</td>
+                        <td>{info.ReceiptNumber}</td>
+                        <td>{info.Depositor}</td>
+                        <td>{info.Employee}</td>
+                        <td>{info.UserName}</td>
+                        <td>{info.GLDate}</td>
+                        <td>{info.GLAmount}</td>
+                        <td>{info.CashReceiptId}</td>
                       </tr>
                     ))
                   ) : (
@@ -289,14 +349,14 @@ export default function ShowExcelFile() {
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </Card>
-        <button
+        {/* <button
           data-mdb-button-init=""
           className="carousel-control-prev position-relative"
           type="button"
           data-mdb-target="#carouselMultiItemExample"
           data-mdb-slide="prev"
           onClick={saveExcelData}
-        />
+        /> */}
 
         <Button style={{ backgroundColor: 'lightgray', color: 'black' }} onClick={saveExcelData}>
           Add Excel Data to DB

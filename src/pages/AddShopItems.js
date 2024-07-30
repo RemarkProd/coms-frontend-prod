@@ -18,13 +18,13 @@ import { useUser } from '../context/UserContext';
 // components
 // sections
 import {
-  addShopItemsService,
-  checkUserActionAssignment,
-  getAllCustomerService,
-  getItemsListService,
-  getShopsListService,
-  getUserProfileDetails,
-  updateShopItemsService,
+    addShopItemsService,
+    checkUserActionAssignment,
+    getAllCustomerService,
+    getItemsListService,
+    getShopsListService,
+    getUserProfileDetails,
+    updateShopItemsService,
 } from '../Services/ApiServices';
 import DepositListToolbar from '../sections/@dashboard/deposits/shopItemsToolbar';
 
@@ -318,17 +318,6 @@ export default function AddShopItems() {
   const [inputValue, setInputValue] = useState('');
   const [selectedOption, setSelectedOption] = useState(null);
 
-  // const handleChange = (selectedOption) => {
-
-  //   console.log(selectedOption);
-  //   setSelectedOption(selectedOption);
-  //   itemInfo.inventory_item_id = selectedOption.value;
-  //   itemInfo.description = selectedOption.label;
-  //   // const updatedRows = [...rows];
-  //   // updatedRows[index][name] = value;
-  //   // console.log(updatedRows);
-  //   // setRows(updatedRows);
-  // };
   const handleChange = (index, selectedOption) => {
     const updatedRows = [...rows];
     updatedRows[index]['inventory_item_id'] = selectedOption.value;
@@ -402,7 +391,7 @@ export default function AddShopItems() {
             throw new Error('Process failed! Try again');
           } else {
             const name = 'distributionId';
-            const value = response.data.value;
+            const {value} = response.data;
             filteredArray[c] = { ...filteredArray[c], [name]: value };
 
             setRows((prevRows) => {

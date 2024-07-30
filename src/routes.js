@@ -34,6 +34,7 @@ import SignupPage from './pages/SignupPage';
 import UpdateSalesOrderForm from './pages/UpdateSalesOrderFormPage';
 import ViewOrdersHeader from './pages/ViewOrdersHeader';
 import WfNotificationView from './pages/WfNotificationViewPage';
+import AddCustomerPage from './sections/@dashboard/customers/AddCustomerPage';
 import AddSystemItemsDialog from './sections/@dashboard/items/AddSystemItemsDialog';
 import AddUomDialog from './sections/@dashboard/uom/AddUomDialog';
 import AddFndUser from './sections/@dashboard/user/AddFndUser';
@@ -60,6 +61,7 @@ import AddShopItems from './pages/AddShopItems';
 import AddShopRoutesPage from './pages/AddShopRoutesPage';
 import BankFormPage from './pages/BankFormPage';
 import BrandingAssetsTrackingPage from './pages/BrandingAassetsTrackingPage';
+import CustomerManagementPage from './pages/CustomerManagementPage';
 import DepositEntryForm from './pages/DepositEntryForm';
 import DepositsViewPage from './pages/DepositsViewPage';
 import ItemsDashBoard from './pages/ItemsDashBoard';
@@ -78,6 +80,7 @@ import TestSapApiPage from './pages/TestSapApiPage';
 import UpdateAccountPage from './pages/UpdateAccountPage';
 import UpdateBankFormPage from './pages/UpdateBankFormPage';
 import UpdateMtlCategories from './pages/UpdateMtlCategories';
+import UploadReconciledDepositsExcel from './pages/UploadReconciledDepositsExcel';
 import UserActionAssignmentPage from './pages/UserActionAssignmentPage';
 import VatposIntegrationService from './pages/VatposIntegrationService';
 import ForgetPassword from './pages/forgetPassword';
@@ -188,6 +191,9 @@ export default function Router() {
         { path: 'routeMaster/add', element: <AddShopRoutesPage /> },
         { path: 'shopitems/add', element: <AddShopItems /> },
         { path: 'itemsdashboard', element: <ItemsDashBoard /> },
+        { path: 'customers', element: <CustomerManagementPage /> },
+        { path: 'customers/add', element: <AddCustomerPage /> },
+        { path: 'uploadreconcileddepositsexcel', element: <UploadReconciledDepositsExcel /> },
       ],
     },
 

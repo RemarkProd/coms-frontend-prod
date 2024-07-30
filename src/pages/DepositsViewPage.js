@@ -49,6 +49,7 @@ import {
   getBankDepositViewFilterByFromDateService,
   getBankDepositViewFilterByToDateService,
   getBankListService,
+  getBankReconIdDetails,
   getDepositTypesService,
   getUserProfileDetails,
   upldateBankDepositService,
@@ -311,6 +312,26 @@ export default function UserPage() {
   }, [user]);
   console.log(customerBankAccountList);
 
+  const [bankReconIdAll, setBankReconIdAll] = useState([]);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        if (user) {
+          const bankReconIdDetails = await getBankReconIdDetails(user); // Call your async function here
+          if (bankReconIdDetails.status === 200) {
+            setBankReconIdAll(bankReconIdDetails.data);
+          } // Set the account details in the component's state
+        }
+      } catch (error) {
+        // Handle any errors that might occur during the async operation
+        console.error('Error fetching account details:', error);
+      }
+    }
+
+    fetchData(); // Call the async function when the component mounts
+  }, [user]);
+  console.log(bankReconIdAll);
+
   function getFormattedPrice(value) {
     const formattedPrice = new Intl.NumberFormat().format(value);
     console.log(parseInt(formattedPrice, 10));
@@ -354,6 +375,7 @@ export default function UserPage() {
     TABLE_HEAD = [
       { id: 'attachment', label: 'Receipt Attachment', alignRight: false },
       { id: 'status', label: 'Status', alignRight: false },
+      { id: 'remarks', label: 'Remarks', alignRight: false },
       { id: 'deposit_date', label: 'Deposit Date', alignRight: false },
       { id: 'entry_date', label: 'Entry Date', alignRight: false },
       { id: 'company_bank_name', label: 'Company Bank', alignRight: false },
@@ -372,7 +394,6 @@ export default function UserPage() {
       { id: 'employee_name', label: 'Employee', alignRight: false },
       { id: 'user_name', label: 'User Name', alignRight: false },
       { id: 'reject_reason', label: 'Reject Reason', alignRight: false },
-      { id: 'remarks', label: 'Remarks', alignRight: false },
       { id: 'edit', label: 'Edit', alignRight: false },
       // { id: '' },
     ];
@@ -380,6 +401,7 @@ export default function UserPage() {
     TABLE_HEAD = [
       { id: 'attachment', label: 'Receipt Attachment', alignRight: false },
       { id: 'status', label: 'Status', alignRight: false },
+      { id: 'remarks', label: 'Remarks', alignRight: false },
       { id: 'deposit_date', label: 'Deposit Date', alignRight: false },
       { id: 'entry_date', label: 'Entry Date', alignRight: false },
       { id: 'company_bank_name', label: 'Company Bank', alignRight: false },
@@ -398,7 +420,7 @@ export default function UserPage() {
       { id: 'employee_name', label: 'Employee', alignRight: false },
       { id: 'user_name', label: 'User Name', alignRight: false },
       { id: 'reject_reason', label: 'Reject Reason', alignRight: false },
-      { id: 'remarks', label: 'Remarks', alignRight: false },
+      { id: 'edit', label: 'Edit', alignRight: false },
       // { id: '' },
     ];
   }
@@ -477,6 +499,8 @@ export default function UserPage() {
     to: '',
     amount: '',
     group: '',
+    stutus: '',
+    username: '',
   });
 
   const handleFilterInfo = (e) => {
@@ -518,6 +542,8 @@ export default function UserPage() {
         amount: '',
         customer: '',
         group: '',
+        status: '',
+        username: '',
       });
     } else {
       alert('Process failed! Please try again');
@@ -605,6 +631,14 @@ export default function UserPage() {
 
     if (filterInfo.customer) {
       filteredData = filteredData.filter((item) => item.customer_name === filterInfo.customer);
+    }
+
+    if (filterInfo.status) {
+      filteredData = filteredData.filter((item) => item.bank_status === filterInfo.status);
+    }
+
+    if (filterInfo.username) {
+      filteredData = filteredData.filter((item) => item.user_name === filterInfo.username);
     }
 
     setUserList(filteredData);
@@ -954,6 +988,7 @@ export default function UserPage() {
             customerGroupList={customerGroups}
             customerList={customers}
             onDateChange={handleDateChange}
+            bankstatuslist={bankReconIdAll}
           />
 
           <Scrollbar>
@@ -972,6 +1007,8 @@ export default function UserPage() {
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                     const {
+                      bank_recon_id,
+                      bank_status,
                       amount,
                       cash_receipt_id,
                       company_account,
@@ -1004,15 +1041,18 @@ export default function UserPage() {
                         {/* <TableCell padding="checkbox">
                           <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, cash_receipt_id)} />
                         </TableCell> */}
-
                         <TableCell align="left">
                           <button style={{ width: '100%' }} onClick={() => viewAttachment(uploaded_filename)}>
                             view
                           </button>
                         </TableCell>
                         <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
-                          {status}
+                          {bank_status}
                         </TableCell>
+                        <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
+                          {remarks}
+                        </TableCell>
+
                         <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
                           {/* {getFormattedDate(deposit_date)} */}
                           {getFormattedDateWithTime(deposit_date)}
@@ -1068,9 +1108,6 @@ export default function UserPage() {
                         </TableCell>
                         <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
                           {reject_reason}
-                        </TableCell>
-                        <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
-                          {remarks}
                         </TableCell>
                         {canEdit && (
                           <TableCell padding="checkbox">

@@ -13,7 +13,6 @@ import { useNavigate } from 'react-router-dom';
 // @mui
 import {
   Card,
-  Checkbox,
   CircularProgress,
   Paper,
   Stack,
@@ -27,6 +26,7 @@ import {
 } from '@mui/material';
 
 import { CSVLink } from 'react-csv';
+import { read, utils } from 'xlsx';
 import { useUser } from '../../../context/UserContext';
 // components
 import Iconify from '../../../components/iconify';
@@ -39,7 +39,9 @@ import {
   getBankDepositViewFilterByDateService,
   getBankDepositViewFilterByFromDateService,
   getBankDepositViewFilterByToDateService,
+  getBankReconIdDetails,
   getUserProfileDetails,
+  postReconciledDataExcelService,
 } from '../../../Services/ApiServices';
 // import SystemItemListToolbar from '../sections/@dashboard/items/SystemItemListToolbar';
 import { UserListHead } from '../user';
@@ -124,7 +126,7 @@ export default function UserPage() {
   const [USERLIST, setUserList] = useState([]);
   const [customerGroups, setCustomerGroups] = useState([]);
   const [customers, setCustomers] = useState([]);
-
+  const [exceldata, setExceldata] = useState([]);
   const { user } = useUser();
   console.log(user);
 
@@ -148,6 +150,26 @@ export default function UserPage() {
   }, [user]);
   console.log(account);
 
+  const [bankReconIdAll, setBankReconIdAll] = useState([]);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        if (user) {
+          const bankReconIdDetails = await getBankReconIdDetails(user); // Call your async function here
+          if (bankReconIdDetails.status === 200) {
+            setBankReconIdAll(bankReconIdDetails.data);
+          } // Set the account details in the component's state
+        }
+      } catch (error) {
+        // Handle any errors that might occur during the async operation
+        console.error('Error fetching account details:', error);
+      }
+    }
+
+    fetchData(); // Call the async function when the component mounts
+  }, [user]);
+  console.log(bankReconIdAll);
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -157,6 +179,7 @@ export default function UserPage() {
 
           if (response.status === 200) {
             const filteredList = response.data.filter((item) => item.status === 'NEW' || item.status === 'REVERSED');
+
             setUserList(filteredList);
 
             const customerGroupList = [...new Set(filteredList.map((obj) => obj.customer_group))];
@@ -181,9 +204,89 @@ export default function UserPage() {
     return formattedPrice;
   }
 
+  const file_type = [
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-excel',
+    'text/csv',
+  ];
+  const handleChange = (e) => {
+    const selected_file = e.target.files[0];
+    console.log(selected_file.type);
+    if (selected_file && file_type.includes(selected_file.type)) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const workbook = read(e.target.result);
+        const sheet = workbook.SheetNames;
+        if (sheet.length) {
+          const data = utils.sheet_to_json(workbook.Sheets[sheet[0]]);
+          setExceldata(data);
+        }
+      };
+      reader.readAsArrayBuffer(selected_file);
+    }
+  };
+
+  console.log(exceldata);
+  const formattedData = exceldata.map((item) => ({
+    cashReceiptId: item.CashReceiptId,
+    bankReconId: item.BankReconId,
+    // status: item.Status,
+    // depositDate: item.DepositDate,
+    // entryDate: item.EntryDate,
+    // companyBank: item.CompanyBank,
+    // companyAccount: item.CompanyAccount,
+    // companyName: item.CompanyName,
+    // payFromCustomer: item.PayFromCustomer,
+    // customerName: item.CustomerName,
+    // customerGroup: item.CustomerGroup,
+    // amount: item.Amount,
+    // invoiceNumber: item.InvoiceNumber,
+    // depositType: item.DepositType,
+    // depositFromBank: item.DepositFromBank,
+    // depositFromBranch: item.DepositFromBranch,
+    // receiptNumber: item.ReceiptNumber,
+    // glDate: item.GLDate,
+    // glAmount: item.GLAmount,
+    // depositor: item.Depositor,
+    // employee: item.Employee,
+    // userName: item.UserName,
+    remarks: item.Remarks,
+    // id: item.ID,
+    // age: item.AGE,
+    // name: item.NAME,
+    // value: item.VALUE,
+  }));
+  console.log(formattedData);
+
+  const saveExcelData = async () => {
+    let postData;
+
+    try {
+      if (formattedData) {
+        postData = await postReconciledDataExcelService(formattedData);
+      }
+      console.log('Hola', postData);
+    } catch (error) {
+      console.error('Error fetching account details:', error);
+    }
+    if (postData.status === 200) {
+      alert('Succefully Added');
+      window.location.reload();
+    }
+  };
+
   const [open, setOpen] = useState(false);
   const handleClose = () => {
     setOpen(false);
+  };
+
+  const [openUploadExcelDialog, setOpenUploadExcelDialog] = useState(false);
+  const handleCloseDialog = () => {
+    setOpenUploadExcelDialog(false);
+  };
+
+  const handleOpenDialog = () => {
+    setOpenUploadExcelDialog(true);
   };
 
   const [imageSrc, setImageSrc] = useState(null);
@@ -215,6 +318,7 @@ export default function UserPage() {
   const TABLE_HEAD = [
     { id: 'attachment', label: 'Receipt Attachment', alignRight: false },
     { id: 'status', label: 'Status', alignRight: false },
+    { id: 'remarks', label: 'Remarks', alignRight: false },
     { id: 'deposit_date', label: 'Deposit Date', alignRight: false },
     { id: 'entry_date', label: 'Entry Date', alignRight: false },
     { id: 'company_bank_name', label: 'Company Bank', alignRight: false },
@@ -233,7 +337,7 @@ export default function UserPage() {
     { id: 'employee_name', label: 'Employee', alignRight: false },
     { id: 'user_name', label: 'User Name', alignRight: false },
     // { id: 'reject_reason', label: 'Reject Reason', alignRight: false },
-    { id: 'remarks', label: 'Remarks', alignRight: false },
+
     // { id: '' },
   ];
 
@@ -288,6 +392,8 @@ export default function UserPage() {
     to: '',
     amount: '',
     group: '',
+    status: '',
+    username: '',
   });
 
   const handleFilterInfo = (e) => {
@@ -327,8 +433,9 @@ export default function UserPage() {
         from: '',
         to: '',
         amount: '',
-        customer: '',
         group: '',
+        status: '',
+        username: '',
       });
     } else {
       alert('Process failed! Please try again');
@@ -414,6 +521,14 @@ export default function UserPage() {
       filteredData = filteredData.filter((item) => item.customer_name === filterInfo.customer);
     }
 
+    if (filterInfo.status) {
+      filteredData = filteredData.filter((item) => item.bank_status === filterInfo.status);
+    }
+
+    if (filterInfo.username) {
+      filteredData = filteredData.filter((item) => item.user_name === filterInfo.username);
+    }
+
     setUserList(filteredData);
   };
 
@@ -443,25 +558,26 @@ export default function UserPage() {
   const isNotFound = !filteredUsers.length && !!filterName;
 
   const exportData = filteredUsers.map((item) => ({
-    Status: item.status,
-    'Deposit Date': getFormattedDateWithTime(item.deposit_date),
-    'Entry Date': getFormattedDateWithTime(item.creation_date),
-    'Company Bank': item.company_bank,
-    'Company Account': item.company_account,
-    'Company Name': item.company_name,
-    'Customer Code': item.customer_code,
-    'Customer Name': item.customer_name,
-    'Customer Group': item.customer_group,
+    BankReconId: item.bank_recon_id,
+    Remarks: '',
+    DepositDate: getFormattedDateWithTime(item.deposit_date),
+    EntryDate: getFormattedDateWithTime(item.creation_date),
+    CompanyBank: item.company_bank,
+    CompanyAccount: item.company_account,
+    CompanyName: item.company_name,
+    PayFromCustomer: item.customer_code,
+    CustomerName: item.customer_name,
+    CustomerGroup: item.customer_group,
     Amount: item.amount,
-    'Invoice Number': item.invoice_number,
-    'Deposit Type': item.deposit_type_name,
-    'Deposit From Bank': item.depositor_bank,
-    'Deposit From Branch': item.depositor_branch,
-    'Receipt Number': item.receipt_number,
+    InvoiceNumber: item.invoice_number,
+    DepositType: item.deposit_type_name,
+    DepositFromBank: item.depositor_bank,
+    DepositFromBranch: item.depositor_branch,
+    ReceiptNumber: item.receipt_number,
+    CashReceiptId: item.cash_receipt_id,
     Depositor: item.depositor_name,
     Employee: item.employee_name,
-    'User Name': item.user_name,
-    Remarks: item.remarks,
+    UserName: item.user_name,
   }));
 
   return (
@@ -504,6 +620,17 @@ export default function UserPage() {
           <CSVLink data={exportData} className="btn btn-success">
             Export Table
           </CSVLink>
+          <Button
+            style={{ backgroundColor: 'lightgray', color: 'black', marginLeft: '12px' }}
+            onClick={handleOpenDialog}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                handleOpenDialog();
+              }
+            }}
+          >
+            Upload Excel Data{' '}
+          </Button>
         </Stack>
 
         <Card>
@@ -525,6 +652,7 @@ export default function UserPage() {
             customerGroupList={customerGroups}
             customerList={customers}
             onDateChange={handleDateChange}
+            bankstatuslist={bankReconIdAll}
           />
 
           <Scrollbar>
@@ -538,10 +666,13 @@ export default function UserPage() {
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
+                  enableReadonly
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                     const {
+                      bank_recon_id,
+                      bank_status,
                       amount,
                       cash_receipt_id,
                       company_account,
@@ -572,22 +703,25 @@ export default function UserPage() {
 
                     return (
                       <TableRow hover key={cash_receipt_id} tabIndex={-1} role="checkbox" selected={selectedUser}>
-                        <TableCell padding="checkbox">
+                        {/* <TableCell padding="checkbox">
                           <Checkbox
                             checked={selectedUser}
                             onChange={(event) => handleClick(event, cash_receipt_id)}
                             // onChange={(event) => handleClick(event, { itemId: cash_receipt_id })}
                           />
-                        </TableCell>
-
+                        </TableCell> */}
                         <TableCell align="left">
                           <button style={{ width: '100%' }} onClick={() => viewAttachment(uploaded_filename)}>
                             view
                           </button>
                         </TableCell>
                         <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
-                          {status}
+                          {bank_status}
                         </TableCell>
+                        <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
+                          {remarks}
+                        </TableCell>
+
                         <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
                           {/* {getFormattedDate(deposit_date)} */}
                           {getFormattedDateWithTime(deposit_date)}
@@ -644,9 +778,6 @@ export default function UserPage() {
                         {/* <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
                           {reject_reason}
                         </TableCell> */}
-                        <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
-                          {remarks}
-                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -680,6 +811,22 @@ export default function UserPage() {
                     </TableRow>
                   </TableBody>
                 )}
+                <Dialog open={openUploadExcelDialog} onClose={handleCloseDialog}>
+                  <Stack />
+                  <DialogContent>
+                    <Stack spacing={2.5} direction="row">
+                      <Typography sx={{ fontWeight: 'bold' }}>Upload Excel -&gt;</Typography>
+                      <div style={{ marginLeft: '10px' }}>
+                        <input type="file" onChange={handleChange} />
+                      </div>
+                      <div>
+                        <Button style={{ backgroundColor: 'lightgray', color: 'black' }} onClick={saveExcelData}>
+                          Upload
+                        </Button>
+                      </div>
+                    </Stack>
+                  </DialogContent>
+                </Dialog>
 
                 <Dialog open={open} onClose={handleClose}>
                   <Stack />

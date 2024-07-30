@@ -69,6 +69,7 @@ UserListToolbar.propTypes = {
   customerGroupList: PropTypes.array,
   customerList: PropTypes.array,
   onDateChange: PropTypes.func,
+  bankstatuslist: PropTypes.array,
 };
 
 export default function UserListToolbar({
@@ -89,6 +90,7 @@ export default function UserListToolbar({
   customerGroupList,
   customerList,
   onDateChange,
+  bankstatuslist,
 }) {
   const [open, setOpen] = useState(false);
   const [rowData, setRowData] = useState({});
@@ -163,11 +165,23 @@ export default function UserListToolbar({
     .filter((option) => option.toLowerCase().includes(inputValue.toLowerCase()))
     .map((option) => ({ value: option, label: option }));
 
+  // for customer status
+  const handleStatusChange = (selectedOption) => {
+    setSelectedOption(selectedOption);
+    filterDetails.status = selectedOption.value;
+  };
+
+  const handleStatusInputChange = (inputValue) => {
+    setInputValue(inputValue);
+  };
+
+  const filteredStatusOptions = bankstatuslist
+    .filter((option) => option.short_name.toLowerCase().includes(inputValue.toLowerCase()))
+    .map((option) => ({ value: option.short_name, label: option.short_name }));
+
   const today = new Date().toISOString().split('T')[0];
 
-  const parseDate = (dateString) => {
-    return parse(dateString, 'dd/MM/yy', new Date());
-  };
+  const parseDate = (dateString) => parse(dateString, 'dd/MM/yy', new Date());
 
   return (
     <StyledRoot
@@ -267,7 +281,7 @@ export default function UserListToolbar({
                 />
               </label>
             </div> */}
-            <div className="col-auto">
+            <div className="col-auto" style={{ display: 'flex', marginRight: '20px', width: 'auto' }}>
               <label htmlFor="amount" className="col-form-label" style={{ display: 'flex' }}>
                 Amount
                 <input
@@ -284,8 +298,23 @@ export default function UserListToolbar({
               </label>
             </div>
 
+            <div className="col-auto" style={{ display: 'flex', marginRight: '10px', width: 'auto' }}>
+              <span style={{ marginRight: '5px' }}>Bank Status</span>
+              <div style={{ width: '180px' }}>
+                <Select
+                  value={filterDetails.status ? { value: filterDetails.status, label: filterDetails.status } : null}
+                  // value={selectedOption}
+                  // onChange={onFilterDetails}
+                  onChange={handleStatusChange}
+                  onInputChange={handleStatusInputChange}
+                  options={filteredStatusOptions}
+                  placeholder="Type to select..."
+                  isClearable
+                />
+              </div>
+            </div>
+
             <Button onClick={onFilterDate}>Filter</Button>
-            <Button onClick={onClearDate}>Clear</Button>
           </Stack>
           <Stack direction="row" alignItems="center" justifyContent="flex-start">
             {/* <div className="col-auto" style={{ marginRight: '10px' }}>
@@ -306,7 +335,7 @@ export default function UserListToolbar({
             </div> */}
             <div className="col-auto" style={{ display: 'flex', marginRight: '20px', width: 'auto' }}>
               <span style={{ marginRight: '5px' }}>Customer</span>
-              <div style={{ width: '425px' }}>
+              <div style={{ width: '190px' }}>
                 <Select
                   id="customer"
                   name="customer"
@@ -324,7 +353,7 @@ export default function UserListToolbar({
               </div>
             </div>
 
-            <div className="col-auto" style={{ display: 'flex' }}>
+            <div className="col-auto" style={{ display: 'flex', marginRight: '20px', width: 'auto' }}>
               <span style={{ marginRight: '5px' }}>Customer Group</span>
               {/* <div>
                 <span style={{ marginRight: '5px' }}>Customer</span>
@@ -343,6 +372,7 @@ export default function UserListToolbar({
                   placeholder="Type to select..."
                   isClearable
                 />
+
                 {/* <select
                   required
                   id="group"
@@ -361,6 +391,24 @@ export default function UserListToolbar({
                 </select> */}
               </div>
             </div>
+
+            <div className="col-auto" style={{ display: 'flex', marginRight: '10px', width: 'auto' }}>
+              <span style={{ marginRight: '5px' }}>Username</span>
+              {/* <div style={{ width: '180px' }}> */}
+              <input
+                required
+                id="username"
+                name="username"
+                className="form-control"
+                style={{ marginLeft: '5px', width: '125px' }}
+                // value={toDepositDate}
+                // onChange={onToDate}
+                value={filterDetails.username}
+                onChange={onFilterDetails}
+              />
+              {/* </div> */}
+            </div>
+            <Button onClick={onClearDate}>Clear</Button>
           </Stack>
         </Stack>
       )}
