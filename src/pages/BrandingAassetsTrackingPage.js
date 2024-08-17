@@ -39,16 +39,15 @@ import Dialog from '@mui/material/Dialog';
 import Select from 'react-select';
 import {
   dowloadBankDepositReceiptService,
+  getAreaService,
+  getBeatsService,
   getBrandingAssetsChildItemsService,
   getBrandingAssetsItemImagesService,
   getBrandingAssetsItemsService,
-  getDistrictsByDivisionService,
-  getDistrictsService,
-  getDivisionsService,
-  getRouteMasterService,
+  getRegionService,
   getShopsListService,
-  getThanasByDistrictService,
-  getThanasService,
+  getTerritoriesService,
+  getTownsService,
   getUserProfileDetails,
 } from '../Services/ApiServices';
 
@@ -111,23 +110,11 @@ export default function ItemsDashBoard() {
   const [loading, setLoading] = useState(false);
   const [noImages, setNoImages] = useState(false);
 
-  const [filterDetails, setFilterDetails] = useState({
-    division: '',
-    district: '',
-    thana: '',
-    route: '',
-    shop: '',
-    mobile: '',
-  });
+  const [filterDetails, setFilterDetails] = useState({});
 
   //Start From here ////////////////////////////////
   const [inputValue, setInputValue] = useState('');
-  const [selectedDivision, setSelectedDivision] = useState(null);
-  const [selectedDistrict, setSelectedDistrict] = useState(null);
-  const [selectedThana, setSelectedThana] = useState(null);
-  const [selectedRoute, setSelectedRoute] = useState(null);
   const [selectedShop, setSelectedShop] = useState(null);
-  const [selectedContact, setSelectedContact] = useState(null);
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('name');
   const [filterName, setFilterName] = useState('');
@@ -174,79 +161,6 @@ export default function ItemsDashBoard() {
   }, [user]);
   console.log(account);
 
-  const [divisions, setDivisions] = useState([]);
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        let response = {};
-        if (user) response = await getDivisionsService(user); // Call your async function here
-        if (response.status === 200) setDivisions(response.data);
-      } catch (error) {
-        // Handle any errors that might occur during the async operation
-        console.error('Error fetching account details:', error);
-      }
-    }
-
-    fetchData(); // Call the async function when the component mounts
-  }, [user]);
-  console.log(divisions);
-
-  const [districts, setDistricts] = useState([]);
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        let response = {};
-        if (filterDetails.division)
-          response = await getDistrictsByDivisionService(user, filterDetails.division); // Call your async function here
-        else response = await getDistrictsService(user); // Call your async function here
-        if (response.status === 200) setDistricts(response.data);
-      } catch (error) {
-        // Handle any errors that might occur during the async operation
-        console.error('Error fetching account details:', error);
-      }
-    }
-
-    fetchData(); // Call the async function when the component mounts
-  }, [filterDetails.division]);
-  console.log(districts);
-
-  const [thanas, setThanas] = useState([]);
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        let response = {};
-        if (filterDetails.district)
-          response = await getThanasByDistrictService(user, filterDetails.district); // Call your async function here
-        else response = await getThanasService(user); // Call your async function here
-        if (response.status === 200) setThanas(response.data);
-      } catch (error) {
-        // Handle any errors that might occur during the async operation
-        console.error('Error fetching account details:', error);
-      }
-    }
-
-    fetchData(); // Call the async function when the component mounts
-  }, [filterDetails.district]);
-  console.log(thanas);
-
-  const [routes, setRoutes] = useState([]);
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        let response = {};
-        if (filterDetails.thana) response = await getRouteMasterService(); // Call your async function here
-
-        if (response.status === 200) setRoutes(response.data);
-      } catch (error) {
-        // Handle any errors that might occur during the async operation
-        console.error('Error fetching account details:', error);
-      }
-    }
-
-    fetchData(); // Call the async function when the component mounts
-  }, [filterDetails.thana]);
-  console.log(routes);
-
   const [USERLIST, setUserList] = useState([]);
   useEffect(() => {
     async function fetchData() {
@@ -262,75 +176,208 @@ export default function ItemsDashBoard() {
     fetchData();
   }, [user]);
   console.log(USERLIST);
-  const shopIdNameArray = USERLIST.map(({ shop_id, shop_name, contact_number }) => ({
-    shop_id,
-    shop_name,
-    contact_number,
-  }));
+
+  const shopIdNameArray = USERLIST
+    ? USERLIST.map(({ shop_id, shop_name, contact_number }) => ({
+        shop_id,
+        shop_name,
+        contact_number,
+      }))
+    : [];
   console.log(shopIdNameArray);
 
-  const handleDivisionChange = (selectedOption) => {
-    setSelectedDivision(selectedOption);
-    filterDetails.division = selectedOption.value;
-    filterDetails.divisionName = selectedOption.label;
+  //   selecting Region
+  const [regions, setRegions] = useState([]);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        let response = {};
+        if (user) response = await getRegionService(user); // Call your async function here
+
+        if (response.status === 200) setRegions(response.data);
+      } catch (error) {
+        // Handle any errors that might occur during the async operation
+        console.error('Error fetching account details:', error);
+      }
+    }
+
+    fetchData(); // Call the async function when the component mounts
+  }, [user]);
+  console.log(regions);
+
+  const [selectedRegion, setSelectedRegion] = useState(null);
+  const handleRegionChange = (selectedOption) => {
+    setSelectedRegion(selectedOption);
+    filterDetails.region = selectedOption.value;
+    filterDetails.regionName = selectedOption.label;
     console.log(filterDetails);
   };
 
-  const handleDivisionInputChange = (inputValue) => {
+  const handleRegionInputChange = (inputValue) => {
     setInputValue(inputValue);
   };
 
-  const filteredDivisionOptions = divisions
-    .filter((option) => option.division_name.toLowerCase().includes(inputValue.toLowerCase()))
-    .map((option) => ({ value: option.division_id, label: option.division_name }));
-  // .map((option) => ({ value: option.division_name, label: option.division_name }));
+  const filteredRegionOptions = regions
+    .filter((option) => option.region_name.toLowerCase().includes(inputValue.toLowerCase()))
+    .map((option) => ({ value: option.region_id, label: option.region_name }));
 
-  //   selecting District
-  const handleDistrictChange = (selectedOption) => {
-    setSelectedDistrict(selectedOption);
-    filterDetails.district = selectedOption.value;
-    filterDetails.districtName = selectedOption.label;
+  //   selecting area
+  const [areas, setAreas] = useState([]);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const requestBody = {
+          regionId: filterDetails.region,
+        };
+
+        let response = {};
+        if (filterDetails.region) response = await getAreaService(requestBody); // Call your async function here
+
+        if (response.status === 200) setAreas(response.data);
+      } catch (error) {
+        // Handle any errors that might occur during the async operation
+        console.error('Error fetching account details:', error);
+      }
+    }
+
+    fetchData(); // Call the async function when the component mounts
+  }, [filterDetails.region]);
+  console.log(areas);
+
+  const [selectedArea, setSelectedArea] = useState(null);
+  const handleAreaChange = (selectedOption) => {
+    setSelectedArea(selectedOption);
+    filterDetails.area = selectedOption.value;
+    filterDetails.areaName = selectedOption.label;
   };
 
-  const handleDistrictInputChange = (inputValue) => {
+  const handleAreaInputChange = (inputValue) => {
     setInputValue(inputValue);
   };
 
-  const filteredDistrictOptions = districts
-    .filter((option) => option.district_name.toLowerCase().includes(inputValue.toLowerCase()))
-    // .map((option) => ({ value: option.district_name, label: option.district_name }));
-    .map((option) => ({ value: option.district_id, label: option.district_name }));
+  const filteredAreaOptions = areas
+    .filter((option) => option.area_name.toLowerCase().includes(inputValue.toLowerCase()))
+    .map((option) => ({ value: option.area_id, label: option.area_name }));
 
-  //   selecting Thana
-  const handleThanaChange = (selectedOption) => {
-    setSelectedThana(selectedOption);
-    filterDetails.thana = selectedOption.value;
-    filterDetails.thanaName = selectedOption.label;
+  //   selecting territory
+  const [territories, setTerritories] = useState([]);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const requestBody = {
+          regionId: filterDetails.region,
+          areaId: filterDetails.area,
+        };
+
+        let response = {};
+        if (filterDetails.area) response = await getTerritoriesService(requestBody); // Call your async function here
+
+        if (response.status === 200) setTerritories(response.data);
+      } catch (error) {
+        // Handle any errors that might occur during the async operation
+        console.error('Error fetching account details:', error);
+      }
+    }
+
+    fetchData(); // Call the async function when the component mounts
+  }, [filterDetails.area]);
+  console.log(territories);
+
+  const [selectedTerritory, setSelectedTerritory] = useState(null);
+  const handleTerritoryChange = (selectedOption) => {
+    setSelectedTerritory(selectedOption);
+    filterDetails.territory = selectedOption.value;
+    filterDetails.territoryName = selectedOption.label;
   };
 
-  const handleThanaInputChange = (inputValue) => {
+  const handleTerritoryInputChange = (inputValue) => {
     setInputValue(inputValue);
   };
 
-  const filteredThanaOptions = thanas
-    .filter((option) => option.thana_name.toLowerCase().includes(inputValue.toLowerCase()))
-    // .map((option) => ({ value: option.thana_name, label: option.thana_name ? option.thana_name : '' }));
-    .map((option) => ({ value: option.thana_id, label: option.thana_name ? option.thana_name : '' }));
+  const filteredTerritoryOptions = territories
+    .filter((option) => option.territory_name.toLowerCase().includes(inputValue.toLowerCase()))
+    .map((option) => ({ value: option.territory_id, label: option.territory_name }));
 
-  const handleRouteChange = (selectedOption) => {
-    setSelectedRoute(selectedOption);
-    filterDetails.route = selectedOption.value;
-    filterDetails.routeName = selectedOption.label;
+  //   selecting town
+  const [towns, setTowns] = useState([]);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const requestBody = {
+          regionId: filterDetails.region,
+          areaId: filterDetails.area,
+          territoryId: filterDetails.territory,
+        };
+
+        let response = {};
+        if (filterDetails.territory) response = await getTownsService(requestBody); // Call your async function here
+
+        if (response.status === 200) setTowns(response.data);
+      } catch (error) {
+        // Handle any errors that might occur during the async operation
+        console.error('Error fetching account details:', error);
+      }
+    }
+
+    fetchData(); // Call the async function when the component mounts
+  }, [filterDetails.territory]);
+  console.log(towns);
+
+  const [selectedTown, setSelectedTown] = useState(null);
+  const handleTownChange = (selectedOption) => {
+    setSelectedTown(selectedOption);
+    filterDetails.town = selectedOption.value;
+    filterDetails.townName = selectedOption.label;
   };
 
-  const handleRouteInputChange = (inputValue) => {
+  const handleTownInputChange = (inputValue) => {
     setInputValue(inputValue);
   };
 
-  const filteredRouteOptions = routes
-    .filter((option) => option.route_name.toLowerCase().includes(inputValue.toLowerCase()))
-    // .map((option) => ({ value: option.district_name, label: option.district_name }));
-    .map((option) => ({ value: option.route_id, label: option.route_name }));
+  const filteredTownOptions = towns
+    .filter((option) => option.town_name.toLowerCase().includes(inputValue.toLowerCase()))
+    .map((option) => ({ value: option.town_id, label: option.town_name }));
+
+  //   selecting beat
+  const [beats, setBeats] = useState([]);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const requestBody = {
+          regionId: filterDetails.region,
+          areaId: filterDetails.area,
+          territoryId: filterDetails.territory,
+          townId: filterDetails.town,
+        };
+
+        let response = {};
+        if (filterDetails.town) response = await getBeatsService(requestBody); // Call your async function here
+
+        if (response.status === 200) setBeats(response.data);
+      } catch (error) {
+        // Handle any errors that might occur during the async operation
+        console.error('Error fetching account details:', error);
+      }
+    }
+
+    fetchData(); // Call the async function when the component mounts
+  }, [filterDetails.town]);
+  console.log(beats);
+
+  const [selectedBeat, setSelectedBeat] = useState(null);
+  const handleBeatChange = (selectedOption) => {
+    setSelectedBeat(selectedOption);
+    filterDetails.beat = selectedOption.value;
+    filterDetails.beatName = selectedOption.label;
+  };
+
+  const handleBeatInputChange = (inputValue) => {
+    setInputValue(inputValue);
+  };
+
+  const filteredBeatOptions = beats
+    .filter((option) => option.beat_name.toLowerCase().includes(inputValue.toLowerCase()))
+    .map((option) => ({ value: option.beat_id, label: option.beat_name }));
 
   const handleShopChange = (selectedOption) => {
     setSelectedShop(selectedOption);
@@ -347,22 +394,7 @@ export default function ItemsDashBoard() {
     // .map((option) => ({ value: option.district_name, label: option.district_name }));
     .map((option) => ({ value: option.shop_id, label: option.shop_name }));
 
-  const handleContactChange = (selectedOption) => {
-    setSelectedContact(selectedOption);
-    filterDetails.mobile = selectedOption.label;
-  };
-
-  const handleContactInputChange = (inputValue) => {
-    setInputValue(inputValue);
-  };
-
-  const filteredContactOptions = shopIdNameArray
-    .filter((option) => option.contact_number.toLowerCase().includes(inputValue.toLowerCase()))
-    // .map((option) => ({ value: option.district_name, label: option.district_name }));
-    .map((option) => ({ value: option.shop_id, label: option.contact_number }));
-
   const selectedUsers = [];
-  const selectedItems = [];
   const [items, setItems] = useState([]);
   const [childItems, setChildItems] = useState([]);
   const fetchDataForSpecificShop = async (specificElement) => {
@@ -423,9 +455,6 @@ export default function ItemsDashBoard() {
     }
   };
   console.log(imageSrc);
-
-  console.log('1', imageSrc[0]);
-  console.log('2', imageSrc[1]);
 
   const [images, setImages] = useState([]);
   const fetchImageForSpecificItem = async (specificElements) => {
@@ -584,29 +613,30 @@ export default function ItemsDashBoard() {
       const response = await getShopsListService(user);
       if (response) {
         let filteredData = response.data;
-
-        if (filterDetails.division) {
-          filteredData = filteredData.filter((item) => item.division_id === filterDetails.division);
-        }
-
-        if (filterDetails.district) {
-          filteredData = filteredData.filter((item) => item.district_id === filterDetails.district);
-        }
-
-        if (filterDetails.thana) {
-          filteredData = filteredData.filter((item) => item.thana_id === filterDetails.thana);
-        }
-
-        if (filterDetails.route) {
-          filteredData = filteredData.filter((item) => item.route_id === filterDetails.route);
-        }
+        console.log(filteredData);
 
         if (filterDetails.shop) {
           filteredData = filteredData.filter((item) => item.shop_id === filterDetails.shop);
         }
 
-        if (filterDetails.mobile) {
-          filteredData = filteredData.filter((item) => item.contact_number === filterDetails.mobile);
+        if (filterDetails.region) {
+          filteredData = filteredData.filter((item) => item.region_id === filterDetails.region);
+        }
+
+        if (filterDetails.territory) {
+          filteredData = filteredData.filter((item) => item.territory_id === filterDetails.territory);
+        }
+
+        if (filterDetails.area) {
+          filteredData = filteredData.filter((item) => item.area_id === filterDetails.area);
+        }
+
+        if (filterDetails.town) {
+          filteredData = filteredData.filter((item) => item.town_id === filterDetails.town);
+        }
+
+        if (filterDetails.beat) {
+          filteredData = filteredData.filter((item) => item.beat_id === filterDetails.beat);
         }
 
         setUserList(filteredData);
@@ -619,12 +649,12 @@ export default function ItemsDashBoard() {
   const handleClearFilterShop = async () => {
     setFilterDetails({});
 
-    setSelectedDivision(null);
-    setSelectedDistrict(null);
-    setSelectedThana(null);
-    setSelectedRoute(null);
+    setSelectedRegion(null);
+    setSelectedArea(null);
+    setSelectedTerritory(null);
+    setSelectedTown(null);
     setSelectedShop(null);
-    setSelectedContact(null);
+    setSelectedBeat(null);
 
     try {
       const response = await getShopsListService(user);
@@ -705,16 +735,16 @@ export default function ItemsDashBoard() {
             <Stack direction="row" gap={1} mb={2}>
               {/* <div className="col-auto" style={filterFirstElementStyling}> */}
               <div className="col-auto" style={filterFieldStyling}>
-                <span style={{ marginRight: '5px' }}>Division</span>
+                <span style={{ marginRight: '5px' }}>Region</span>
                 <div>
                   <Select
-                    id="division"
-                    name="division"
+                    id="region"
+                    name="region"
                     // value={filterDetails.customer ? { value: filterDetails.customer, label: filterDetails.customer } : null}
-                    value={selectedDivision}
-                    onChange={handleDivisionChange}
-                    onInputChange={handleDivisionInputChange}
-                    options={filteredDivisionOptions}
+                    value={selectedRegion}
+                    onChange={handleRegionChange}
+                    onInputChange={handleRegionInputChange}
+                    options={filteredRegionOptions}
                     placeholder="Type to select..."
                     isClearable
                   />
@@ -722,13 +752,13 @@ export default function ItemsDashBoard() {
               </div>
 
               <div className="col-auto" style={filterFieldStyling}>
-                <span style={{ marginRight: '11px' }}>Route</span>
+                <span style={{ marginRight: '11px' }}>Town</span>
                 <div>
                   <Select
-                    value={selectedRoute}
-                    onChange={handleRouteChange}
-                    onInputChange={handleRouteInputChange}
-                    options={filteredRouteOptions}
+                    value={selectedTown}
+                    onChange={handleTownChange}
+                    onInputChange={handleTownInputChange}
+                    options={filteredTownOptions}
                     placeholder="Type to select..."
                     isClearable
                   />
@@ -738,13 +768,43 @@ export default function ItemsDashBoard() {
 
             <Stack direction="row" gap={1} mb={2}>
               <div className="col-auto" style={filterFieldStyling}>
-                <span style={{ marginRight: '5px' }}>District</span>
+                <span style={{ marginRight: '5px' }}>Area</span>
                 <div>
                   <Select
-                    value={selectedDistrict}
-                    onChange={handleDistrictChange}
-                    onInputChange={handleDistrictInputChange}
-                    options={filteredDistrictOptions}
+                    value={selectedArea}
+                    onChange={handleAreaChange}
+                    onInputChange={handleAreaInputChange}
+                    options={filteredAreaOptions}
+                    placeholder="Type to select..."
+                    isClearable
+                  />
+                </div>
+              </div>
+
+              <div className="col-auto" style={filterFieldStyling}>
+                <span style={{ marginRight: '5px' }}>Beat</span>
+                <div>
+                  <Select
+                    value={selectedBeat}
+                    onChange={handleBeatChange}
+                    onInputChange={handleBeatInputChange}
+                    options={filteredBeatOptions}
+                    placeholder="Type to select..."
+                    isClearable
+                  />
+                </div>
+              </div>
+            </Stack>
+
+            <Stack direction="row" gap={1} mb={2}>
+              <div className="col-auto" style={filterFieldStyling}>
+                <span style={{ marginRight: '5px' }}>Territory</span>
+                <div>
+                  <Select
+                    value={selectedTerritory}
+                    onChange={handleTerritoryChange}
+                    onInputChange={handleTerritoryInputChange}
+                    options={filteredTerritoryOptions}
                     placeholder="Type to select..."
                     isClearable
                   />
@@ -759,36 +819,6 @@ export default function ItemsDashBoard() {
                     onChange={handleShopChange}
                     onInputChange={handleShopInputChange}
                     options={filteredShopOptions}
-                    placeholder="Type to select..."
-                    isClearable
-                  />
-                </div>
-              </div>
-            </Stack>
-
-            <Stack direction="row" gap={1} mb={2}>
-              <div className="col-auto" style={filterFieldStyling}>
-                <span style={{ marginRight: '5px' }}>Thana</span>
-                <div>
-                  <Select
-                    value={selectedThana}
-                    onChange={handleThanaChange}
-                    onInputChange={handleThanaInputChange}
-                    options={filteredThanaOptions}
-                    placeholder="Type to select..."
-                    isClearable
-                  />
-                </div>
-              </div>
-
-              <div className="col-auto" style={filterFieldStyling}>
-                <span style={{ marginRight: '5px' }}>Mobile</span>
-                <div>
-                  <Select
-                    value={selectedContact}
-                    onChange={handleContactChange}
-                    onInputChange={handleContactInputChange}
-                    options={filteredContactOptions}
                     placeholder="Type to select..."
                     isClearable
                   />

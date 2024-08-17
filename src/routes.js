@@ -57,10 +57,12 @@ import PieChartView from './DataVisualization/PieChart';
 import { getUserProfileDetails } from './Services/ApiServices';
 import { useUser } from './context/UserContext';
 import AccountFormPage from './pages/AccountFormPage';
+import AddCustomerFromSapPage from './pages/AddCustomerFromSapPage';
 import AddShopItems from './pages/AddShopItems';
 import AddShopRoutesPage from './pages/AddShopRoutesPage';
 import BankFormPage from './pages/BankFormPage';
 import BrandingAssetsTrackingPage from './pages/BrandingAassetsTrackingPage';
+import BrandingAssetsViewPage from './pages/BrandingAssetsViewPage';
 import CustomerManagementPage from './pages/CustomerManagementPage';
 import DepositEntryForm from './pages/DepositEntryForm';
 import DepositsViewPage from './pages/DepositsViewPage';
@@ -180,6 +182,7 @@ export default function Router() {
         { path: 'allDeposits', element: <ShowAllDeposits /> },
         { path: 'mtlcategoriesformpage', element: <MtlCategoriesFormPage /> },
         { path: 'depositsView', element: <DepositsViewPage /> },
+        { path: 'brandingassetsviewpage', element: <BrandingAssetsViewPage /> },
         { path: 'drilldownpage', element: <DrillDownPage /> },
         { path: 'gaugepage', element: <Gauge /> },
         { path: 'barchart', element: <BarChart /> },
@@ -194,6 +197,7 @@ export default function Router() {
         { path: 'customers', element: <CustomerManagementPage /> },
         { path: 'customers/add', element: <AddCustomerPage /> },
         { path: 'uploadreconcileddepositsexcel', element: <UploadReconciledDepositsExcel /> },
+        { path: 'addCustomersFromSap', element: <AddCustomerFromSapPage /> },
       ],
     },
 

@@ -1363,7 +1363,7 @@ export const getAllBankDepositsForAccountsService = async (loginToken) => {
 
 export const getShopsListService = async (loginToken) => {
   try {
-    return await axios.get(`${usersUrl}shop-master/`, {
+    return await axios.get(`${usersUrl}shop-master/view`, {
       headers: {
         Authorization: `Bearer ${loginToken}`,
       },
@@ -1533,6 +1533,60 @@ export const updateShopItemsService = async (loginToken, bodyInfo) => {
   }
 };
 
+export const getAreaService = async (bodyInfo) => {
+  try {
+    return await axios.post(`${usersUrl}area/`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getTerritoriesService = async (bodyInfo) => {
+  try {
+    return await axios.post(`${usersUrl}territory/`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getTownsService = async (bodyInfo) => {
+  try {
+    return await axios.post(`${usersUrl}town/`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getBeatsService = async (bodyInfo) => {
+  try {
+    return await axios.post(`${usersUrl}beat/`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getRegionService = async (loginToken) => {
+  try {
+    return await axios.get(`${usersUrl}region/byCustGroupId`, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
 export const approveBankDepositService = async (loginToken, bodyInfo) => {
   try {
     return await axios.put(`${usersUrl}bank-deposit/approve`, bodyInfo, {
@@ -1652,6 +1706,27 @@ export const createSalesOrderService = async (token, requestBody) => {
         'x-csrf-token': token,
       },
     });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+// sap integration
+export const getCustomersFromSap = async () => {
+  try {
+    return await axios.get(`${usersUrl}add-customer-from-sap`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const addCustomersFromSap = async (bodyInfo) => {
+  try {
+    return await axios.post(`${usersUrl}add-customer-from-sap/add`, bodyInfo);
   } catch (err) {
     console.log(err.message);
 
@@ -2127,6 +2202,20 @@ export const getBrandingAssetsItemImagesService = async (loginToken, itemId) => 
   console.log(itemId);
   try {
     return await axios.get(`${usersUrl}branding-assets/viewReviewStatus/${itemId}`, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getBrandingAssetsViewData = async (loginToken) => {
+  try {
+    return await axios.get(`${usersUrl}branding-assets`, {
       headers: {
         Authorization: `Bearer ${loginToken}`,
       },
