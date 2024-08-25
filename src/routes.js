@@ -62,7 +62,7 @@ import AddShopItems from './pages/AddShopItems';
 import AddShopRoutesPage from './pages/AddShopRoutesPage';
 import BankFormPage from './pages/BankFormPage';
 import BrandingAssetsTrackingPage from './pages/BrandingAassetsTrackingPage';
-import BrandingAssetsViewPage from './pages/BrandingAssetsViewPage';
+import BrandingAssetsViewPage from './pages/BrandingAssetsReportPage';
 import CustomerManagementPage from './pages/CustomerManagementPage';
 import DepositEntryForm from './pages/DepositEntryForm';
 import DepositsViewPage from './pages/DepositsViewPage';
