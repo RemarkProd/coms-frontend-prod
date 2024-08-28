@@ -38,6 +38,7 @@ import {
   getItemsListService,
   getShopsListService,
   getUserProfileDetails,
+  getBrandingAssetSumReport,
 } from '../Services/ApiServices';
 // import DepositListToolbar from '../sections/@dashboard/deposits/depositListToolbar';
 import { UserListHead } from '../sections/@dashboard/user';
@@ -224,6 +225,22 @@ export default function UserPage() {
     fetchData();
   }, [user]);
   console.log(shopDetails);
+
+  const [brandingAssestsSumDetails, setBrandingAssestsSumDetails] = useState([]);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await getBrandingAssetSumReport(user);
+        console.log(response.data);
+        if (response) setBrandingAssestsSumDetails(response.data);
+      } catch (error) {
+        console.error('Error fetching account details:', error);
+      }
+    }
+
+    fetchData();
+  }, [user]);
+  console.log(brandingAssestsSumDetails);
 
   const [inputValue, setInputValue] = useState('');
   const [selectedOption, setSelectedOption] = useState(null);

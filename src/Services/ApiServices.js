@@ -1347,13 +1347,9 @@ export const upldateBankDepositService = async (loginToken, requestBody) => {
   }
 };
 
-export const getAllBankDepositsForAccountsService = async (loginToken) => {
+export const getUndefinedDepositsService = async () => {
   try {
-    return await axios.get(`${usersUrl}bank-deposit/customer/view/`, {
-      headers: {
-        Authorization: `Bearer ${loginToken}`,
-      },
-    });
+    return await axios.get(`${usersUrl}undefined-bank-deposit/`, {});
   } catch (err) {
     console.log(err.message);
 
@@ -1361,9 +1357,23 @@ export const getAllBankDepositsForAccountsService = async (loginToken) => {
   }
 };
 
-export const getBrandingAssetSumReport = async () => {
+export const getUndefinedDepositsFromViewService = async () => {
   try {
-    return await axios.get(`${usersUrl}branding-assets/brandingAssetSumReport`);
+    return await axios.get(`${usersUrl}undefined-bank-deposit/view`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getAllBankDepositsForAccountsService = async (loginToken) => {
+  try {
+    return await axios.get(`${usersUrl}bank-deposit/customer/view/`, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
   } catch (err) {
     console.log(err.message);
 
@@ -1600,6 +1610,20 @@ export const getRegionService = async (loginToken) => {
 export const approveBankDepositService = async (loginToken, bodyInfo) => {
   try {
     return await axios.put(`${usersUrl}bank-deposit/approve`, bodyInfo, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const approveClaimedBankDepositService = async (loginToken, bodyInfo) => {
+  try {
+    return await axios.post(`${usersUrl}undefined-bank-deposit/confirm`, bodyInfo, {
       headers: {
         Authorization: `Bearer ${loginToken}`,
       },
@@ -2357,9 +2381,30 @@ export const postReconciledDataExcelService = async (bodyInfo) => {
   }
 };
 
+export const postUndefinedDepositsFromExcelService = async (bodyInfo) => {
+  console.log(bodyInfo);
+  try {
+    return await axios.post(`${usersUrl}undefined-bank-deposit/uploadExcel`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
 export const getBankReconIdDetails = async (userInfo) => {
   try {
     return await axios.get(`${usersUrl}get-bank_recon_details/all`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getBrandingAssetSumReport = async () => {
+  try {
+    return await axios.get(`${usersUrl}branding-assets/brandingAssetSumReport`);
   } catch (err) {
     console.log(err.message);
 
