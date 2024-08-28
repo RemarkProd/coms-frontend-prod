@@ -258,6 +258,7 @@ export default function UserPage() {
     { id: 'inventory_item_id', label: 'Inventory Item Id', alignRight: false },
     { id: 'brand_code', label: 'Brand Code', alignRight: false },
     { id: 'shop_name', label: 'Shop Name', alignRight: false },
+    { id: 'layout', label: 'Layout', alignRight: false },
     { id: 'address', label: 'Address', alignRight: false },
     { id: 'area_name', label: 'Area_Name', alignRight: false },
     { id: 'asset_cost', label: 'Asset Cost', alignRight: false },
@@ -494,6 +495,7 @@ export default function UserPage() {
                       supplier_name,
                       territory_name,
                       town_name,
+                      layout_name
                     } = row;
 
                     const rowValues = [
@@ -503,6 +505,7 @@ export default function UserPage() {
                       inventory_item_id,
                       brand_code,
                       shop_name,
+                      layout_name,
                       address,
                       area_name,
                       asset_cost,
@@ -525,7 +528,7 @@ export default function UserPage() {
                       <TableRow hover key={shop_id} tabIndex={-1} role="checkbox" selected={selectedUser}>
                         {rowValues.map((value, index) => (
                           <TableCell key={index} align="left" style={{ whiteSpace: 'nowrap' }}>
-                            {index === 10 || index === 15 ? getFormattedDateWithTime(value) : value}
+                            {index === 11 || index === 16 ? getFormattedDateWithTime(value) : value}
                           </TableCell>
                         ))}
                       </TableRow>
