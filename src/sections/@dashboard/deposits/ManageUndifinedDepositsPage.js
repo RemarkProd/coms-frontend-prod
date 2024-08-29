@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable react/jsx-key */
 /* eslint-disable camelcase */
@@ -217,13 +218,89 @@ export default function UserPage() {
   };
 
   console.log(exceldata);
+  function changeDateFormat(inputDate) {
+    console.log('Original Input:', inputDate);
+
+    // Split the date and time components
+    const parts = inputDate.split(/[\s/]+/);
+
+    if (parts.length !== 3) {
+      console.error("Invalid date format. Expected format: 'DD/MM/YY HH:MM:SS AM/PM'");
+      return null;
+    }
+
+    const [datePart, timePart, meridian] = parts;
+
+    // Parse the date part
+    const dateParts = datePart.split('/');
+    if (dateParts.length !== 3) {
+      console.error("Invalid date part. Expected format: 'DD/MM/YY'");
+      return null;
+    }
+
+    const [day, month, year] = dateParts.map(Number);
+
+    if (isNaN(day) || isNaN(month) || isNaN(year)) {
+      console.error('Invalid day, month, or year value.');
+      return null;
+    }
+
+    // Handle the 12-hour format
+    const timeParts = timePart.split(':');
+    if (timeParts.length !== 3) {
+      console.error("Invalid time part. Expected format: 'HH:MM:SS'");
+      return null;
+    }
+
+    const [hours, minutes, seconds] = timeParts.map(Number);
+
+    if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
+      console.error('Invalid hours, minutes, or seconds value.');
+      return null;
+    }
+
+    let hour = hours;
+
+    if (meridian === 'PM' && hours !== 12) {
+      hour += 12;
+    } else if (meridian === 'AM' && hours === 12) {
+      hour = 0;
+    }
+
+    // Construct a valid date string in the format 'YYYY-MM-DDTHH:MM:SS'
+    const fullYear = year < 100 ? year + 2000 : year; // Adjusting the year if needed
+
+    const date = new Date(fullYear, month - 1, day, hour, minutes, seconds);
+
+    if (isNaN(date.getTime())) {
+      console.error('Failed to create a valid Date object.');
+      return null;
+    }
+
+    const formattedDate = date.toISOString();
+
+    console.log('Formatted Date:', formattedDate);
+    return formattedDate;
+  }
   const formattedData = exceldata.map((item) => {
+    let convertedDate = null;
     const bankStmDate = item.bank_stm_date;
-    const convertedDate = bankStmDate ? new Date((bankStmDate - (25567 + 2)) * 86400 * 1000) : null;
+
+    console.log(typeof bankStmDate);
+
+    if (typeof bankStmDate === 'number') {
+      convertedDate = bankStmDate ? new Date((bankStmDate - (25567 + 2)) * 86400 * 1000) : null;
+      console.log(typeof convertedDate);
+    }
 
     return {
       document_number: item.document_number,
-      bank_stm_date: convertedDate ? convertedDate.toISOString().split('T')[0] : '',
+      bank_stm_date:
+        typeof bankStmDate === 'number'
+          ? convertedDate
+            ? convertedDate.toISOString().split('T')[0]
+            : ''
+          : changeDateFormat(bankStmDate),
       company_code: item.company_code,
       bank_name: item.bank_name,
       bank_account_num: item.bank_account_num,
