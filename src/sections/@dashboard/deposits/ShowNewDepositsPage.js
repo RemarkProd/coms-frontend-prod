@@ -178,7 +178,7 @@ export default function UserPage() {
           const response = await getAllBankDepositsForAccountsService(user);
 
           if (response.status === 200) {
-            const filteredList = response.data.filter((item) => item.status === 'NEW' || item.status === 'REVERSED');
+            const filteredList = response.data;
 
             setUserList(filteredList);
 
@@ -494,7 +494,7 @@ export default function UserPage() {
       console.log(response.data);
 
       if (response.status === 200) {
-        filteredData = response.data.filter((item) => item.status === 'NEW' || item.status === 'REVERSED');
+        filteredData = response.data;
       }
     }
 
