@@ -39,8 +39,8 @@ export default function MenuCreation() {
       menuId: '',
       userId: '',
       userName: '',
-      fromDate: '',
-      toDate: '',
+      fromDate: null,
+      toDate: null,
       showList: false,
     },
   ]);
@@ -125,8 +125,8 @@ export default function MenuCreation() {
         menuId: '',
         userId: '',
         userName: '',
-        fromDate: '',
-        toDate: '',
+        fromDate: null,
+        toDate: null,
         showList: false,
       },
     ]);

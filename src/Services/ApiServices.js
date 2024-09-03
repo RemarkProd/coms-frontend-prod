@@ -2411,3 +2411,27 @@ export const getBrandingAssetSumReport = async () => {
     return err.message;
   }
 };
+
+export const addFndUserDetailsByProcedure = async (fnduser) => {
+  try {
+    return await axios.post(`${usersUrl}add-user/`, fnduser);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getCustomerGroupService = async (loginToken) => {
+  try {
+    return await axios.get(`${usersUrl}customer-list/customerGroup/list`, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};

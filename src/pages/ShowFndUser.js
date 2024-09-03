@@ -8,22 +8,22 @@ import { useNavigate } from 'react-router-dom';
 
 // @mui
 import {
-    Button,
-    Card,
-    Checkbox,
-    Container,
-    IconButton,
-    MenuItem,
-    Paper,
-    Popover,
-    Stack,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TablePagination,
-    TableRow,
-    Typography,
+  Button,
+  Card,
+  Checkbox,
+  Container,
+  IconButton,
+  MenuItem,
+  Paper,
+  Popover,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TablePagination,
+  TableRow,
+  Typography,
 } from '@mui/material';
 // components
 import Iconify from '../components/iconify';
@@ -40,8 +40,6 @@ const TABLE_HEAD = [
   { id: 'userId', label: 'User ID', alignRight: false },
   { id: 'userName', label: 'User Name', alignRight: false },
   { id: 'action', label: 'Action', alignRight: false },
-
-  { id: '' },
 ];
 const selectedUsers = [];
 
@@ -206,13 +204,13 @@ export default function ShowFndUser() {
   return (
     <>
       <Helmet>
-        <title> HR Locations | COMS </title>
+        <title> Users Table | COMS </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Fnd User
+            User
           </Typography>
           <div>
             <Button
@@ -224,7 +222,7 @@ export default function ShowFndUser() {
                 navigate('/dashboard/addfnduser');
               }}
             >
-              Add FndUser
+              Add User
             </Button>
           </div>
         </Stack>
@@ -273,7 +271,6 @@ export default function ShowFndUser() {
                             }}
                           >
                             <Iconify icon={'tabler:edit'} />
-                               
                           </IconButton>
                         </TableCell>
 
