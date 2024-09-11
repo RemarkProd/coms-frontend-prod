@@ -209,12 +209,12 @@ export default function AddFndUser() {
         console.log(lineInfo);
 
         const requestBody = {
-          employeeCode: lineInfo.employeeCode,
-          password: lineInfo.password,
-          employeeName: lineInfo.employeeName,
-          email: lineInfo.email,
-          supervisorId: lineInfo.supervisorId,
-          customerGroupId: lineInfo.customerGroupId,
+          employeeCode: lineInfo.employeeCode || '',
+          password: lineInfo.password || '',
+          employeeName: lineInfo.employeeName || '',
+          email: lineInfo.email || '',
+          supervisorId: lineInfo.supervisorId || null,
+          customerGroupId: lineInfo.customerGroupId || null,
         };
 
         const response = await addFndUserDetailsByProcedure(requestBody);

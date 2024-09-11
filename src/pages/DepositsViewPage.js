@@ -1196,10 +1196,9 @@ export default function UserPage() {
                         name="amount"
                         label="Amount"
                         autoComplete="given-name"
-                        // style={{ backgroundColor: 'white' }}
                         onChange={(e) => onValueChange(e)}
                         InputLabelProps={{ shrink: true }}
-                        value={rowData.amount ? rowData.amount : null}
+                        value={rowData.amount ? rowData.amount : ''}
                       />
                       <TextField
                         fullWidth
@@ -1212,17 +1211,7 @@ export default function UserPage() {
                         value={rowData.customer_name ? rowData.customer_name : ''}
                       />
                       {showCustomerList && (
-                        <ul
-                          style={{
-                            // position: 'absolute',
-                            // top: '100%',
-                            // left: 0,
-                            // width: '100%',
-                            backgroundColor: 'white',
-                            border: '1px solid #ccc',
-                            zIndex: 1,
-                          }}
-                        >
+                        <ul style={{ backgroundColor: 'white', border: '1px solid #ccc', zIndex: 1 }}>
                           {filteredCustomerList.map((suggestion, index) => (
                             <MenuItem key={index} onClick={() => handleCustomerClick(suggestion)}>
                               {suggestion.full_name}
@@ -1241,17 +1230,7 @@ export default function UserPage() {
                         onChange={(e) => handleInputPaymentMethodChange(e)}
                       />
                       {showPaymentMethodList && (
-                        <ul
-                          style={{
-                            // position: 'absolute',
-                            // top: '100%',
-                            // left: 0,
-                            // width: '100%',
-                            backgroundColor: 'white',
-                            border: '1px solid #ccc',
-                            zIndex: 1,
-                          }}
-                        >
+                        <ul style={{ backgroundColor: 'white', border: '1px solid #ccc', zIndex: 1 }}>
                           {filteredPaymentMethodList.map((suggestion, index) => (
                             <MenuItem key={index} onClick={() => handlePaymentMethodClick(suggestion)}>
                               {suggestion}
@@ -1272,13 +1251,7 @@ export default function UserPage() {
                         />
                       )}
                       {showPaymentTypeList && (
-                        <ul
-                          style={{
-                            backgroundColor: 'white',
-                            border: '1px solid #ccc',
-                            zIndex: 1,
-                          }}
-                        >
+                        <ul style={{ backgroundColor: 'white', border: '1px solid #ccc', zIndex: 1 }}>
                           {filteredPaymentTypeList.map((suggestion, index) => (
                             <MenuItem key={index} onClick={() => handlePaymentTypeClick(suggestion)}>
                               {suggestion.deposit_type}
@@ -1311,13 +1284,7 @@ export default function UserPage() {
                         />
                       )}
                       {showDepositorBankList && (
-                        <ul
-                          style={{
-                            backgroundColor: 'white',
-                            border: '1px solid #ccc',
-                            zIndex: 1,
-                          }}
-                        >
+                        <ul style={{ backgroundColor: 'white', border: '1px solid #ccc', zIndex: 1 }}>
                           {filteredDepositorBankList.map((suggestion, index) => (
                             <MenuItem key={index} onClick={() => handleDepositorBankClick(suggestion)}>
                               {suggestion.bank_name}
@@ -1338,13 +1305,7 @@ export default function UserPage() {
                         />
                       )}
                       {showDepositorBankBranchList && (
-                        <ul
-                          style={{
-                            backgroundColor: 'white',
-                            border: '1px solid #ccc',
-                            zIndex: 1,
-                          }}
-                        >
+                        <ul style={{ backgroundColor: 'white', border: '1px solid #ccc', zIndex: 1 }}>
                           {filteredDepositorBankBranchList.map((suggestion, index) => (
                             <MenuItem key={index} onClick={() => handleDepositorBankBranchClick(suggestion)}>
                               {suggestion.bank_branch_name}
@@ -1365,13 +1326,7 @@ export default function UserPage() {
                         />
                       )}
                       {showCompanyBankAccountList && (
-                        <ul
-                          style={{
-                            backgroundColor: 'white',
-                            border: '1px solid #ccc',
-                            zIndex: 1,
-                          }}
-                        >
+                        <ul style={{ backgroundColor: 'white', border: '1px solid #ccc', zIndex: 1 }}>
                           {filteredCompanyBankAccountList.map((suggestion, index) => (
                             <MenuItem key={index} onClick={() => handleCompanyBankAccountClick(suggestion)}>
                               {suggestion.bank_account_name}, {suggestion.bank_name}, {suggestion.company_name}
@@ -1435,7 +1390,6 @@ export default function UserPage() {
                           label="Deposit Attachment"
                           autoComplete="given-name"
                           fullWidth
-                          // style={{ backgroundColor: 'white' }}
                           onChange={(e) => uplodPhoto(e, rowData.uploaded_filename)}
                           InputLabelProps={{ shrink: true }}
                         />
@@ -1454,7 +1408,6 @@ export default function UserPage() {
                         onChange={(e) => onValueChange(e)}
                       />
                     </Stack>
-
                     <Grid container spacing={2} style={{ marginTop: '5px' }}>
                       <Grid item xs={3} style={{ display: 'flex' }}>
                         <Button

@@ -70,6 +70,7 @@ import ItemsDashBoard from './pages/ItemsDashBoard';
 import ManageAccountPage from './pages/ManageAccountPage';
 import ManageBankFormPage from './pages/ManageBankFormPage';
 import ManageMtlCategoriesB from './pages/ManageMtlCategoriesB';
+import ManageSoAdminPage from './pages/ManageSoAdminPage';
 import MtlCategoriesFormPage from './pages/MtlCategoriesFormPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import ShopRouteMasterPage from './pages/ShopRouteMasterPage';
@@ -198,6 +199,7 @@ export default function Router() {
         { path: 'customers/add', element: <AddCustomerPage /> },
         { path: 'uploadreconcileddepositsexcel', element: <UploadReconciledDepositsExcel /> },
         { path: 'addCustomersFromSap', element: <AddCustomerFromSapPage /> },
+        { path: 'manage-so/admin', element: <ManageSoAdminPage /> },
       ],
     },
 

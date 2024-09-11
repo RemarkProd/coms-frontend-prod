@@ -12,10 +12,10 @@ import {
   deleteSalesOrderHeaderService,
   deleteSalesOrderLinesService,
   getCustomerListService,
-  getInventoryItemIdList,
+  getFgItemListService,
   getUserProfileDetails,
   updateSalesOrderHeaderService,
-  updateSalesOrderLineService,
+  updateSalesOrderLineService
 } from '../Services/ApiServices';
 
 import { useUser } from '../context/UserContext';
@@ -139,7 +139,7 @@ export default function Page404() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await getInventoryItemIdList();
+        const response = await getFgItemListService();
         if (response) setInventoryItemIds(response.data);
       } catch (error) {
         console.error('Error fetching account details:', error);
@@ -154,7 +154,7 @@ export default function Page404() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await getInventoryItemIdList();
+        const response = await getFgItemListService();
         if (response) setInventoryItemIds(response.data);
       } catch (error) {
         console.error('Error fetching account details:', error);

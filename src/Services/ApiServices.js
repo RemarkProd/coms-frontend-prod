@@ -886,6 +886,16 @@ export const getInventoryItemIdList = async () => {
   }
 };
 
+export const getFgItemListService = async () => {
+  try {
+    return await axios.get(`${usersUrl}get-item-master/view/fg`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
 export const getUomCodeList = async () => {
   try {
     return await axios.get(`${usersUrl}get-unit-measure/uom_code`);
@@ -981,6 +991,16 @@ export const updateAccountsService = async (headerId, headerInfo) => {
 export const getSalesOrderHeaderService = async (requestInfo) => {
   try {
     return await axios.get(`${usersUrl}get-sales-order-header/${requestInfo}`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getSalesOrderHeaderAllService = async () => {
+  try {
+    return await axios.get(`${usersUrl}get-sales-order-header/`);
   } catch (err) {
     console.log(err.message);
 
@@ -1096,7 +1116,7 @@ export const updateSalesOrderLineService = async (lineId, lineInfo) => {
 export const getCustomerListService = async (token) => {
   console.log(token);
   try {
-    return await axios.get(`${usersUrl}customer-list/`, {
+    return await axios.get(`${usersUrl}customer-list/view`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -1335,7 +1355,7 @@ export const getBankDepositViewFilterByToDateService = async (loginToken, reques
 
 export const upldateBankDepositService = async (loginToken, requestBody) => {
   try {
-    return await axios.post(`${usersUrl}bank-deposit/update/${requestBody.cashReceiptId}`, requestBody, {
+    return await axios.put(`${usersUrl}bank-deposit/update/${requestBody.cashReceiptId}`, requestBody, {
       headers: {
         Authorization: `Bearer ${loginToken}`,
       },

@@ -2,6 +2,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-restricted-globals */
 import { useEffect, useRef, useState } from 'react';
+import { CSVLink } from 'react-csv';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
 // @mui
@@ -28,7 +29,7 @@ import {
   deleteSalesOrderLinesService,
   getApprovalSequenceService,
   getCustomerListService,
-  getInventoryItemIdList,
+  getFgItemListService,
   getSalesOrderHeaderService,
   getSalesOrderLinesService,
   getUserProfileDetails,
@@ -97,7 +98,7 @@ export default function Page404() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await getInventoryItemIdList();
+        const response = await getFgItemListService();
         if (response) setInventoryItemIds(response.data);
       } catch (error) {
         console.error('Error fetching account details:', error);
@@ -182,6 +183,83 @@ export default function Page404() {
   });
   // row.selectedItem.unit_price ? row.selectedItem.unit_price : row.unit_selling_price
   console.log(sumTotalPrice);
+
+  const [csvData, setCsvData] = useState([]);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // const firstLine = soLineDetails.length > 0 ? soLineDetails[0] : {};
+
+        // Data for the first section with one value per row in the first column
+        const firstSectionData = [
+          [
+            'Order Number',
+            'Ordered Date',
+            'Customer',
+            'Ship to',
+            'Transport Type',
+            'Special Discount',
+            'Special Adjustment',
+            'Total Price',
+          ],
+          [
+            soHeaderDetails.order_number,
+            getFormattedDate(soHeaderDetails.ordered_date),
+            soHeaderDetails.distributor,
+            customerRows.ship_to_address ? customerRows.ship_to_address : soHeaderDetails.ship_to,
+            soHeaderDetails.shipping_method_code || '',
+            soHeaderDetails.special_discount,
+            soHeaderDetails.special_adjustment,
+            getFormattedPrice(sumTotalPrice),
+          ],
+        ];
+
+        // Header for the remaining line items
+        const remainingRowsHeader = [
+          'Item',
+          'UOM',
+          'Quantity',
+          'Offer Quantity',
+          'Total Quantity',
+          'Unit Price',
+          'Unit Offer Price',
+          'Total Price',
+        ];
+
+        // Remaining rows data for the items
+        const remainingLineRows = soLineDetails.map((line) => [
+          line.selectedItem?.description || line.selectedItemName || '',
+          line.selectedItem?.primary_uom_code || line.order_quantity_uom || '',
+          line.ordered_quantity || '',
+          line.offer_quantity ? line.ordered_quantity : 0,
+          parseInt(line.offer_quantity || 0, 10) + parseInt(line.ordered_quantity || 0, 10),
+          line.unit_price || line.unit_selling_price || 0,
+          line.ordered_quantity
+            ? getFormattedPrice(
+                (line.ordered_quantity * (line.unit_price || line.unit_selling_price)) /
+                  (parseInt(line.offer_quantity || 0, 10) + parseInt(line.ordered_quantity || 0, 10))
+              )
+            : line.unit_price || 0,
+          getFormattedPrice(
+            line.ordered_quantity *
+              (line.selectedItem.unit_price ? line.selectedItem.unit_price : line.unit_selling_price)
+          ),
+        ]);
+
+        const totalRow = ['', '', '', '', '', '', 'Total', getFormattedPrice(sumTotalPrice)];
+
+        const exportOrderLinesData = [...firstSectionData, [], remainingRowsHeader, ...remainingLineRows, totalRow];
+
+        console.log('Export Data:', exportOrderLinesData);
+        setCsvData(exportOrderLinesData);
+      } catch (error) {
+        console.error('Error fetching account details:', error);
+      }
+    }
+
+    fetchData();
+  }, [soHeaderDetails, soLineDetails]);
 
   const saveHeader = async () => {
     const shipToValue = soHeaderDetails.ship_to ? soHeaderDetails.ship_to : '';
@@ -776,6 +854,9 @@ export default function Page404() {
           <Typography variant="h4" gutterBottom>
             Update Customer Order
           </Typography>
+          <CSVLink data={csvData} className="btn btn-success">
+            Export Table
+          </CSVLink>
         </Stack>
         <div className="row g-3 align-items-center">
           <Stack direction="row" alignItems="center" justifyContent="flex-start">

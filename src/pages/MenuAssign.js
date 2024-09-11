@@ -37,6 +37,7 @@ export default function MenuCreation() {
   const [menurows, setMenuRows] = useState([
     {
       menuId: '',
+      menuDescription: '',
       userId: '',
       userName: '',
       fromDate: null,
@@ -104,7 +105,7 @@ export default function MenuCreation() {
         if (menurows[0].userId) {
           console.log(menurows);
           const response = await getSelectIdsMenus(user, menurows[0].userId);
-          console.log(response);
+          console.log(response.data);
           if (response.status === 200) {
             setMenuslist(response.data);
           }
@@ -119,10 +120,38 @@ export default function MenuCreation() {
   }, [menurows]);
   console.log(menuslist);
 
+  const [inputValue, setInputValue] = useState(''); // Track input value for filtering
+  const [selectedOption, setSelectedOption] = useState(null); // Track selected option
+
+  const handleUsersChange = (selectedOption) => {
+    setSelectedOption(selectedOption);
+
+    setMenuRows((prevMenuRows) =>
+      prevMenuRows.map((row, index) => ({
+        ...row,
+        menuDescription: selectedOption ? selectedOption.label : '',
+        menuId: selectedOption ? selectedOption.value : '',
+      }))
+    );
+  };
+
+  const handleUsersInputChange = (inputValue) => {
+    setInputValue(inputValue);
+  };
+
+  const filteredUsersOptions = menuids
+    .filter((option) => option.menu_description.toLowerCase().includes(inputValue.toLowerCase()))
+    .map((option) => ({
+      value: option.menu_id,
+      label: option.menu_description,
+    }));
+  console.log(filteredUsersOptions);
+
   function clearMenu() {
     setMenuRows([
       {
         menuId: '',
+        menuDescription: '',
         userId: '',
         userName: '',
         fromDate: null,
@@ -280,12 +309,14 @@ export default function MenuCreation() {
   };
 
   function getFormattedDate(value) {
-    const date = new Date(value);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Zero-padding the month
-    const day = String(date.getDate()).padStart(2, '0'); // Zero-padding the day
+    console.log(value);
 
-    // return `${day}/${month}/${year}`;
+    const date = new Date(value);
+    const year = date.getUTCFullYear(); // Get the year in UTC
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Get the month in UTC
+    const day = String(date.getUTCDate()).padStart(2, '0'); // Get the day in UTC
+
+    console.log(`${year}-${month}-${day}`);
     return `${year}-${month}-${day}`;
   }
 
@@ -454,7 +485,7 @@ export default function MenuCreation() {
                         select
                         fullWidth
                         name="menuId"
-                        value={menurows[0].menuId}
+                        value={menurows.menuId}
                         onChange={(e) => handleInputChanges(0, e.target.name, e.target.value)}
                       >
                         <MenuItem value={null}>
@@ -467,6 +498,21 @@ export default function MenuCreation() {
                             </MenuItem>
                           ))}
                       </TextField>
+
+                      {/* <Select
+                        value={menurows.menuDescription}
+                        onChange={handleUsersChange}
+                        onInputChange={handleUsersInputChange}
+                        options={filteredUsersOptions}
+                        placeholder="Type to select..."
+                        isClearable
+                        styles={{
+                          container: (provided) => ({
+                            ...provided,
+                            width: 600, // Set the width to 200px
+                          }),
+                        }}
+                      /> */}
                     </td>
                     <td>
                       <input
