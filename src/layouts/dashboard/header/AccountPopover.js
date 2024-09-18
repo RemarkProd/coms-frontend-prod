@@ -117,12 +117,12 @@ export default function AccountPopover() {
               borderRadius: '5%',
               // padding: '30px',
               position: 'absolute',
-              bgcolor: (theme) => alpha(theme.palette.grey[900], 0.8),
+              bgcolor: (theme) => alpha(theme.palette.grey[900], 0.5),
             },
           }),
         }}
       >
-        <Typography variant="h6" style={{ color: 'black', marginRight: '5px', fontSize: '15px', whiteSpace: 'nowrap' }}>
+        <Typography variant="h6" style={{ color: 'white', marginRight: '5px', fontSize: '15px', whiteSpace: 'nowrap' }}>
           {userName}
         </Typography>
         <Avatar src={'https://us.remarkhb.com/wp-content/uploads/2022/01/remark-200x190.png'} alt="display photo" />

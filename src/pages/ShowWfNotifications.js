@@ -30,6 +30,9 @@ import Scrollbar from '../components/scrollbar';
 import { useUser } from '../context/UserContext';
 import ShowWfNotiHead from '../sections/@dashboard/user/ShowWfNotiHead';
 
+// css
+import '../_css/Utils.css';
+
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
@@ -253,8 +256,8 @@ export default function ShowWfNotifications() {
         <title> HR Locations | COMS </title>
       </Helmet>
 
-      <Container>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+      <Container className="paddingZero fullWidth">
+        <Stack mb={1}>
           <Typography variant="h5" gutterBottom>
             List for Approval
           </Typography>

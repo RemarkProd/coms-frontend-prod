@@ -304,6 +304,7 @@ export default function UserPage() {
       status: item.status,
       bank_account_id: item.bank_account_id,
       deposit_type_id: item.deposit_type_id,
+      userId: account.user_id,
     };
   });
 

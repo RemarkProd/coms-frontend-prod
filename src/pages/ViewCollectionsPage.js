@@ -4,12 +4,12 @@ import Tabs from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
 import PropTypes from 'prop-types';
 import * as React from 'react';
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ManageUndifinedDepositsPage from '../sections/@dashboard/deposits/ViewUnidentifiedDepositsPage';
+// import ShowIdentifiedDepositsPage from '../sections/@dashboard/deposits/ShowIdentifiedDepositsPage';
+import ShowNewDepositsPage from './DepositsViewPage';
+// css
 import '../_css/Utils.css';
-import { useNavItem } from '../context/NavContext';
-import DashboardAppPage from './DashboardAppPage';
-import DashboardAppPage2 from './DashboardAppPage2';
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -45,12 +45,6 @@ function a11yProps(index) {
 }
 
 export default function BasicTabs() {
-  const { selectedItem, removeMenuItem } = useNavItem();
-  // console.log(selectedItem);
-  useEffect(() => {
-    removeMenuItem();
-  }, []);
-
   const [value, setValue] = React.useState(0);
   const navigate = useNavigate();
   const handleChange = (event, newValue) => {
@@ -58,20 +52,23 @@ export default function BasicTabs() {
   };
 
   return (
-    <Box>
-      {/* <Box sx={{ borderBottom: 1, borderColor: 'white' }} style={{ marginLeft: '73px' }}> */}
-      <Box className="indexing" sx={{ borderBottom: 1, borderColor: 'white' }}>
+    <div>
+      <Box className="indexing">
         <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-          <Tab {...a11yProps(0)} label="Notifications" />
-          <Tab {...a11yProps(1)} label="Notifications History" />
+          <Tab {...a11yProps(0)} label="View Collections" />
+          <Tab {...a11yProps(1)} label="Manage Unidentified Deposits" />
+          {/* <Tab {...a11yProps(2)} label="Identified Deposits" /> */}
         </Tabs>
       </Box>
       <CustomTabPanel value={value} index={0}>
-        <DashboardAppPage />
+        <ShowNewDepositsPage />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={1}>
-        <DashboardAppPage2 />
+        <ManageUndifinedDepositsPage />
       </CustomTabPanel>
-    </Box>
+      {/* <CustomTabPanel value={value} index={2}>
+        <ShowIdentifiedDepositsPage />
+      </CustomTabPanel> */}
+    </div>
   );
 }

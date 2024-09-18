@@ -849,7 +849,7 @@ export default function Page404() {
         <title> COMS | Update Customer Order </title>
       </Helmet>
 
-      <Container>
+      <Container style={{ padding: '0px 25px', maxWidth: '100%' }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
           <Typography variant="h4" gutterBottom>
             Update Customer Order
@@ -1105,19 +1105,20 @@ export default function Page404() {
                     />
                   </th>
                   {/* <th>Line Number</th> */}
-                  <th style={{ width: '420px' }}>
+                  <th style={{ width: '420px', whiteSpace: 'nowrap' }}>
                     Item <span style={{ color: 'red' }}>*</span>
                   </th>
-                  <th style={{ width: '50px', textAlign: 'center' }}>UOM</th>
-                  <th style={{ textAlign: 'right' }}>
+                  <th style={{ width: '420px', whiteSpace: 'nowrap' }}>Item Code</th>
+                  <th style={{ width: '50px', textAlign: 'center', whiteSpace: 'nowrap' }}>UOM</th>
+                  <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                     Quantity <span style={{ color: 'red' }}>*</span>
                   </th>
-                  <th style={{ textAlign: 'right' }}>Offer Quantity</th>
-                  <th style={{ textAlign: 'right' }}>Total Quantity</th>
+                  <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>Offer Quantity</th>
+                  <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>Total Quantity</th>
                   {/* <th>Sold From Org ID</th> */}
-                  <th style={{ textAlign: 'right' }}>Unit Price</th>
-                  <th style={{ textAlign: 'right' }}>Unit Offer Price</th>
-                  <th style={{ textAlign: 'right' }}>Total Price</th>
+                  <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>Unit Price</th>
+                  <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>Unit Offer Price</th>
+                  <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>Total Price</th>
                 </tr>
               </thead>
               <tbody>
@@ -1162,6 +1163,26 @@ export default function Page404() {
                             ))}
                           </ul>
                         )}
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          className="form-control"
+                          name="inventory_item_code"
+                          readOnly
+                          value={row.selectedItem.inventory_item_code}
+                          // style={{ width: '80px', textAlign: 'center' }}
+                          style={{
+                            textAlign: 'center',
+                            width: '25px',
+                            height: '50%',
+                            border: 'none',
+                            background: 'none',
+                            outline: 'none',
+                          }}
+                          defaultValue={row.inventory_item_code}
+                          onChange={(e) => handleInputChange(index, e.target.name, e.target.value)}
+                        />
                       </td>
                       <td>
                         <input
@@ -1338,13 +1359,14 @@ export default function Page404() {
                   <td />
                   <td />
                   <td />
+                  <td />
                   <td style={{ textAlign: 'right', paddingRight: '11px' }}>{getFormattedPrice(sumTotalPrice)}</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </form>
-        <Grid container spacing={2}>
+        <Grid container spacing={2} mt={2}>
           <Grid item xs={3}>
             <ButtonGroup variant="contained" aria-label="outlined primary button group" spacing={2}>
               <Button

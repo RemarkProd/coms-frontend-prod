@@ -50,6 +50,7 @@ import UpdateMainSystemMenu from './sections/@dashboard/user/UpdateMainSystemMen
 import UpdateMtlTransactionTypes from './sections/@dashboard/user/UpdateMtlTransactionTypes';
 // import getCookieService from './Services/GetCookieService';
 import BarChart from './DataVisualization/BarChart';
+import DisplayCharts from './DataVisualization/DisplayCharts';
 import DrillDownPage from './DataVisualization/DrillDown';
 import DrillDownCustomerDepositAnalytic from './DataVisualization/DrillDownCustomerDepositAnalytic';
 import Gauge from './DataVisualization/Gauge';
@@ -65,7 +66,6 @@ import BrandingAssetsTrackingPage from './pages/BrandingAassetsTrackingPage';
 import BrandingAssetsViewPage from './pages/BrandingAssetsReportPage';
 import CustomerManagementPage from './pages/CustomerManagementPage';
 import DepositEntryForm from './pages/DepositEntryForm';
-import DepositsViewPage from './pages/DepositsViewPage';
 import ItemsDashBoard from './pages/ItemsDashBoard';
 import ManageAccountPage from './pages/ManageAccountPage';
 import ManageBankFormPage from './pages/ManageBankFormPage';
@@ -86,6 +86,7 @@ import UpdateMtlCategories from './pages/UpdateMtlCategories';
 import UploadReconciledDepositsExcel from './pages/UploadReconciledDepositsExcel';
 import UserActionAssignmentPage from './pages/UserActionAssignmentPage';
 import VatposIntegrationService from './pages/VatposIntegrationService';
+import DepositsViewPage from './pages/ViewCollectionsPage';
 import ForgetPassword from './pages/forgetPassword';
 
 // ----------------------------------------------------------------------
@@ -200,6 +201,7 @@ export default function Router() {
         { path: 'uploadreconcileddepositsexcel', element: <UploadReconciledDepositsExcel /> },
         { path: 'addCustomersFromSap', element: <AddCustomerFromSapPage /> },
         { path: 'manage-so/admin', element: <ManageSoAdminPage /> },
+        { path: 'displayCharts', element: <DisplayCharts /> },
       ],
     },
 

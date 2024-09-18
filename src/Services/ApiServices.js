@@ -2455,3 +2455,13 @@ export const getCustomerGroupService = async (loginToken) => {
     return err.message;
   }
 };
+
+export const getCustomerSummaryList = async () => {
+  try {
+    return await axios.get(`${usersUrl}customer-summary`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};

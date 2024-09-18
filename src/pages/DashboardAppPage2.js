@@ -7,6 +7,8 @@ import Iconify from '../components/iconify';
 // sections
 import { AppCurrentSubject, AppCurrentVisits, AppTrafficBySite, AppWidgetSummary } from '../sections/@dashboard/app';
 import ShowAllWfNotifications from './ShowAllWfNotifications';
+// css
+import '../_css/Utils.css';
 
 // ----------------------------------------------------------------------
 
@@ -19,31 +21,26 @@ export default function DashboardAppPage() {
         <title> Dashboard | COMS </title>
       </Helmet>
 
-      <Container maxWidth="xl">
+      <Container maxWidth={false} disableGutters style={{ width: '100%' }} className="paddingZero">
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6} lg={14}>
+          <Grid item xs={12} md={6} lg={12}>
             <ShowAllWfNotifications />
           </Grid>
 
-          <Grid
-            container
-            spacing={2}
-            style={{ marginLeft: '25px', marginTop: '10px', display: 'flex', flexDirection: 'column', width: '100%' }}
-          >
+          <Grid container spacing={2} style={{ margin: '10px 0', width: '100%' }}>
             {/* Left-aligned Grid items */}
-            <Grid item xs={12} style={{ height: '100px' }}>
-              <Grid container spacing={2} style={{ display: 'flex', flexDirection: 'column' }}>
-                <Grid item style={{ height: '40%' }}>
+            <Grid item xs={12} md={6}>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
                   <AppWidgetSummary title="Weekly Sales" total={714000} icon={'ant-design:android-filled'} />
                 </Grid>
-                <Grid item style={{ height: '20%' }}>
+                <Grid item xs={12}>
                   <AppWidgetSummary title="New Users" total={1352831} color="info" icon={'ant-design:apple-filled'} />
                 </Grid>
-                <Grid item>
+                <Grid item xs={12}>
                   <AppWidgetSummary title="Deposits" total={232323} icon={'ant-design:windows-filled'} />
                 </Grid>
-
-                <Grid item>
+                <Grid item xs={12}>
                   <AppWidgetSummary
                     title="Item Orders"
                     total={1723315}
@@ -51,17 +48,16 @@ export default function DashboardAppPage() {
                     icon={'ant-design:windows-filled'}
                   />
                 </Grid>
-                <Grid item>
+                <Grid item xs={12}>
                   <AppWidgetSummary title="Bug Reports" total={234} color="error" icon={'ant-design:bug-filled'} />
                 </Grid>
               </Grid>
             </Grid>
 
             {/* Right-aligned Grid item */}
-            <Grid item xs={12} md={9.7} style={{ marginLeft: '20px', height: 'auto' }} direction="column">
+            <Grid item xs={12} md={6}>
               <AppCurrentVisits
-                style={{ marginBottom: '20px' }}
-                title="Total Sales Order "
+                title="Total Sales Order"
                 chartData={[
                   { label: 'America', value: 4344 },
                   { label: 'Asia', value: 5435 },
@@ -76,7 +72,6 @@ export default function DashboardAppPage() {
                 ]}
               />
               <AppCurrentSubject
-                style={{ marginBottom: '20px' }}
                 title="Current Subject"
                 chartLabels={['English', 'History', 'Physics', 'Geography', 'Chinese', 'Math']}
                 chartData={[
@@ -90,7 +85,7 @@ export default function DashboardAppPage() {
                 title="Traffic by Site"
                 list={[
                   {
-                    name: 'FaceBook',
+                    name: 'Facebook',
                     value: 323234,
                     icon: <Iconify icon={'eva:facebook-fill'} color="#1877F2" width={32} />,
                   },
@@ -100,7 +95,7 @@ export default function DashboardAppPage() {
                     icon: <Iconify icon={'eva:google-fill'} color="#DF3E30" width={32} />,
                   },
                   {
-                    name: 'Linkedin',
+                    name: 'LinkedIn',
                     value: 411213,
                     icon: <Iconify icon={'eva:linkedin-fill'} color="#006097" width={32} />,
                   },

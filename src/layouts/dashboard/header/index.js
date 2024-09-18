@@ -18,6 +18,9 @@ import AccountPopover from './AccountPopover';
 
 // import Searchbar from './Searchbar';
 
+// css
+import '../../../_css/Utils.css';
+
 // ----------------------------------------------------------------------
 
 const NAV_WIDTH = 280;
@@ -52,7 +55,7 @@ export default function Header({ onOpenNav }) {
   const navigate = useNavigate();
   return (
     <StyledRoot>
-      <StyledToolbar style={{ boxShadow: '1px 1px #ced4da' }}>
+      <StyledToolbar style={{ boxShadow: '1px 1px #ced4da', backgroundColor: 'rgb(53,74,95)' }}>
         <IconButton
           onClick={onOpenNav}
           sx={{
@@ -60,7 +63,8 @@ export default function Header({ onOpenNav }) {
             color: 'text.primary',
             // display: { lg: 'none' },
           }}
-          style={{ padding: '0' }}
+          // style={{ padding: '0' }}
+          className="paddingZero colorWhite"
         >
           <Iconify icon="eva:menu-2-fill" />
         </IconButton>
@@ -73,7 +77,8 @@ export default function Header({ onOpenNav }) {
           onClick={() => {
             navigate(`/dashboard/dashclone`);
           }}
-          color="action"
+          // color="action"
+          className="colorWhite"
         />
 
         <NavSectionClone />
@@ -88,6 +93,7 @@ export default function Header({ onOpenNav }) {
             xs: 0.5,
             sm: 1,
           }}
+          className="colorWhite"
         >
           {/* <LanguagePopover /> */}
           {/* <NotificationsPopover /> */}

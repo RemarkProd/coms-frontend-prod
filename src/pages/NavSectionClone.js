@@ -90,7 +90,7 @@ export default function NavSectionClone() {
     <div style={{ maxHeight: maxListHeight, overflowY: 'auto', marginLeft: '20px', marginRight: '20px' }}>
       <StyledScrollMenu onClick={handleClick}>
         <RouterLink key={navTitle} to={navPath} className="nav-item">
-          <ListItemText disableTypography primary={navTitle} />
+          <ListItemText disableTypography primary={navTitle} style={{ color: 'white' }} />
           {/* {selectedItem.info && selectedItem.info} */}
         </RouterLink>
         {/* {userMenus.map((item, index) => (

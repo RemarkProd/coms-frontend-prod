@@ -6,3 +6,13 @@
   top: 90px;
   right: 23px;
 }
+
+.fullWidth {
+  width: 100%;
+  max-width: 100%;
+}
+
+.viewTable {
+  white-space: nowrap;
+  padding: 5px;
+}

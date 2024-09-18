@@ -131,6 +131,7 @@ export default function Page404() {
     // { id: '' },
     { id: 'unit_of_measure', label: 'Line Number', alignRight: false },
     { id: 'uom_code', label: 'Item', alignRight: false },
+    { id: 'inventory_item_code', label: 'Item Code', alignRight: false },
     { id: 'uom_class', label: 'UOM', alignRight: false },
     { id: 'disable_date', label: 'Quantity', alignRight: false },
     { id: 'offer_quantity', label: 'Offer Quantity', alignRight: false },
@@ -196,7 +197,7 @@ export default function Page404() {
         <title> OSMS | Sales Order Form </title>
       </Helmet>
 
-      <Container>
+      <Container style={{ padding: '0px 25px', maxWidth: '100%' }}>
         {/* <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
           <Typography variant="h4" gutterBottom style={{ width: '50%' }}>
             {wfNotifications.subject}
@@ -325,6 +326,7 @@ export default function Page404() {
                   </TableCell> */}
                   <TableCell>{value.line_number}</TableCell>
                   <TableCell>{value.ordered_item}</TableCell>
+                  <TableCell>{value.inventory_item_code}</TableCell>
                   <TableCell>{value.order_quantity_uom}</TableCell>
                   <TableCell>{value.ordered_quantity}</TableCell>
                   <TableCell>{value.offer_quantity}</TableCell>
