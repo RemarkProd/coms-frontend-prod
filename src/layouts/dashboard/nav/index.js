@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 // @mui
 import { Avatar, Box, Drawer, Link, Typography } from '@mui/material';
-import { alpha, styled } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 // mock
 // hooks
 // import useResponsive from '../../../hooks/useResponsive';
@@ -17,14 +17,14 @@ import { useUser } from '../../../context/UserContext';
 
 // ----------------------------------------------------------------------
 
-const NAV_WIDTH = 280;
+const NAV_WIDTH = 320;
 
 const StyledAccount = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   padding: theme.spacing(2, 2.5),
   borderRadius: Number(theme.shape.borderRadius) * 1.5,
-  backgroundColor: alpha(theme.palette.grey[500], 0.12),
+  // backgroundColor: alpha(theme.palette.grey[500], 0.12),
 }));
 
 // ----------------------------------------------------------------------

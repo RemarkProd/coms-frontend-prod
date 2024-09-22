@@ -2,7 +2,7 @@
 import { LoadingButton } from '@mui/lab';
 import { Stack, Typography } from '@mui/material';
 // services
-import { addCustomersFromSap, getCustomersFromSap } from '../Services/ApiServices';
+import { addCustomersFromSap, addCustomersFromSapErrorLog, getCustomersFromSap } from '../Services/ApiServices';
 
 // ----------------------------------------------------------------------
 
@@ -42,7 +42,16 @@ export default function TestSapApiPage() {
               businessPartnerIdByExtSystem: element.BusinessPartnerIDByExtSystem || '',
               businessPartnerType: element.BusinessPartnerType || '',
             };
-            await addCustomersFromSap(requestBody);
+            const response = await addCustomersFromSap(requestBody);
+
+            if (response.status !== 200) {
+              const requestBody = {
+                businessPartner: element.BusinessPartner || '',
+                errorCode: response.code || '',
+                errorMessage: response.message || '',
+              };
+              await addCustomersFromSapErrorLog(requestBody);
+            }
           })
         );
 

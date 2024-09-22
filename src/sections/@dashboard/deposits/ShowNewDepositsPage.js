@@ -28,7 +28,6 @@ import { CSVLink } from 'react-csv';
 import { read, utils } from 'xlsx';
 import { useUser } from '../../../context/UserContext';
 // components
-import Iconify from '../../../components/iconify';
 import Scrollbar from '../../../components/scrollbar';
 // sections
 import {
@@ -594,7 +593,7 @@ export default function UserPage() {
           {/* <Typography variant="h4" gutterBottom>
             Deposit Collection List
           </Typography> */}
-          <Button
+          {/* <Button
             variant="text"
             startIcon={<Iconify icon="mdi:approve" />}
             color="primary"
@@ -602,7 +601,7 @@ export default function UserPage() {
             style={{ backgroundColor: 'lightgray', color: 'black', padding: '9px', marginRight: '20px' }}
           >
             Reconcile
-          </Button>
+          </Button> */}
           {/* <Button
             variant="text"
             startIcon={<Iconify icon="mdi:approve" />}
@@ -632,7 +631,7 @@ export default function UserPage() {
               }
             }}
           >
-            Upload Excel Data{' '}
+            Upload (Reconciled){' '}
           </Button>
         </Stack>
 
