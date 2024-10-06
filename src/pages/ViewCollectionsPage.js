@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 import PropTypes from 'prop-types';
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
-import ManageUndifinedDepositsPage from '../sections/@dashboard/deposits/ViewUnidentifiedDepositsPage';
+import ManageUndifinedDepositsPage from '../sections/@dashboard/deposits/ManageUndifinedDepositsPage';
 // import ShowIdentifiedDepositsPage from '../sections/@dashboard/deposits/ShowIdentifiedDepositsPage';
 import ShowNewDepositsPage from './DepositsViewPage';
 // css
@@ -56,8 +56,8 @@ export default function BasicTabs() {
       <Box className="indexing">
         <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
           <Tab {...a11yProps(0)} label="View Collections" />
-          <Tab {...a11yProps(1)} label="Manage Unidentified Deposits" />
-          {/* <Tab {...a11yProps(2)} label="Identified Deposits" /> */}
+          {/* <Tab {...a11yProps(1)} label="Manage Unidentified Deposits" /> */}
+          <Tab {...a11yProps(1)} label="View Identified Deposits" />
         </Tabs>
       </Box>
       <CustomTabPanel value={value} index={0}>
@@ -66,7 +66,7 @@ export default function BasicTabs() {
       <CustomTabPanel value={value} index={1}>
         <ManageUndifinedDepositsPage />
       </CustomTabPanel>
-      {/* <CustomTabPanel value={value} index={2}>
+      {/* <CustomTabPanel value={value} index={1}>
         <ShowIdentifiedDepositsPage />
       </CustomTabPanel> */}
     </div>

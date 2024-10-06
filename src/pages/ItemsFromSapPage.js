@@ -4,15 +4,13 @@ import { CircularProgress, Stack, Typography } from '@mui/material';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import { useEffect, useState } from 'react';
-import Select from 'react-select';
 import { useUser } from '../context/UserContext';
 // services
 import {
-  addCustomersFromSap,
-  addCustomersFromSapErrorLog,
+  addAllItemFromSapService,
   getCustomerGroupService,
-  getCustomersFromSap,
-  getUserProfileDetails,
+  getItemsFromSapService,
+  getUserProfileDetails
 } from '../Services/ApiServices';
 // css
 import '../_css/Utils.css';
@@ -24,7 +22,7 @@ export default function TestSapApiPage() {
 
   const getCustomers = async () => {
     try {
-      return await getCustomersFromSap();
+      return await getItemsFromSapService();
     } catch (error) {
       console.error('Error fetching customers:', error);
       return null; // Return null or an empty array to handle the error case
@@ -85,61 +83,29 @@ export default function TestSapApiPage() {
     setInputValue(inputValue);
   };
 
-  const addCustomerAddress = async () => {
-    try {
-      const customers = await getCustomers();
-
-      console.log(customers.data.to_BusinessPartnerAddress.__deferred.uri);
-    } catch (error) {
-      console.error('Error fetching customers:', error);
-    }
-  };
-
   const addCustomer = async () => {
     setOpen(true);
-    const customers = await getCustomers();
+    const items = await getCustomers();
 
-    if (customers && customers.data) {
-      const customerList = customers.data;
+    if (items && items.data) {
+      const customerList = items.data.items;
       console.log(customerList);
 
       try {
-        await Promise.all(
-          customerList.map(async (element) => {
-            await new Promise((resolve) => setTimeout(resolve, 100));
+        const requestBody = {
+          content: customerList || [],
+        };
+        const response = await addAllItemFromSapService(requestBody);
 
-            if (
-              element.BusinessPartnerGrouping === 'ZDOC' &&
-              element.BusinessPartnerType === selectedGroup.toString()
-            ) {
-              const requestBody = {
-                businessPartner: element.BusinessPartner || '',
-                businessPartnerFullname: element.BusinessPartnerFullName || '',
-                businessPartnerCategory: parseInt(element.BusinessPartnerCategory, 10) || null,
-                businessPartnerGrouping: element.BusinessPartnerGrouping || '',
-                businessPartnerIdByExtSystem: element.BusinessPartnerIDByExtSystem || '',
-                businessPartnerType: element.BusinessPartnerType || '',
-              };
-
-              const response = await addCustomersFromSap(requestBody);
-
-              if (response.status !== 200) {
-                const errorRequestBody = {
-                  businessPartner: element.BusinessPartner || '',
-                  errorCode: response.code || '',
-                  errorMessage: response.message || '',
-                };
-                await addCustomersFromSapErrorLog(errorRequestBody);
-              }
-            }
-          })
-        );
-
-        // alert('Successfully added!');
-        handleClose();
+        if (response.status !== 200) {
+          alert('Error adding customers. Please check the console for details.');
+          console.log(response.data);
+        }
       } catch (error) {
         console.error('Error adding customers:', error);
         alert('Error adding customers. Please check the console for details.');
+      } finally {
+        handleClose();
       }
     } else {
       alert('Process failed! Try again.');
@@ -155,7 +121,7 @@ export default function TestSapApiPage() {
     <>
       <Stack align="center" alignItems="center" justifyContent="space-between" sx={{ my: 2 }}>
         <Typography variant="h5" color="text.secondary">
-          Add Customers from SAP service
+          Add Items from SAP service
         </Typography>
       </Stack>
 
@@ -167,7 +133,7 @@ export default function TestSapApiPage() {
         flexDirection={'row'}
         className="indexing"
       >
-        <div className="col-auto" style={{ display: 'flex', marginRight: '20px', width: 'auto' }}>
+        {/* <div className="col-auto" style={{ display: 'flex', marginRight: '20px', width: 'auto' }}>
           <span style={{ marginRight: '5px' }}>Customer Group</span>
           <div>
             <Select
@@ -182,7 +148,7 @@ export default function TestSapApiPage() {
               isClearable
             />
           </div>
-        </div>
+        </div> */}
         <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={addCustomer}>
           Add Customers
         </LoadingButton>
@@ -193,10 +159,15 @@ export default function TestSapApiPage() {
         <Stack />
         <DialogContent style={{ overflow: 'hidden' }}>
           <Stack spacing={1.5} direction="row" style={{ justifyContent: 'center' }}>
-            <CircularProgress />
+            <div>
+              <CircularProgress />
+            </div>
           </Stack>
+
           <Stack spacing={1.5} direction="row">
-            <p>Customers are loading. Please keep patient until process is completed.</p>
+            <p style={{ justifyContent: 'center' }}>
+              Items are loading. Please keep patient until process is completed.
+            </p>
           </Stack>
         </DialogContent>
       </Dialog>

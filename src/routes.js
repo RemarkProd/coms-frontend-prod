@@ -67,6 +67,7 @@ import BrandingAssetsViewPage from './pages/BrandingAssetsReportPage';
 import CustomerManagementPage from './pages/CustomerManagementPage';
 import DepositEntryForm from './pages/DepositEntryForm';
 import ItemsDashBoard from './pages/ItemsDashBoard';
+import ItemsFromSapPage from './pages/ItemsFromSapPage';
 import ManageAccountPage from './pages/ManageAccountPage';
 import ManageBankFormPage from './pages/ManageBankFormPage';
 import ManageMtlCategoriesB from './pages/ManageMtlCategoriesB';
@@ -200,6 +201,7 @@ export default function Router() {
         { path: 'customers/add', element: <AddCustomerPage /> },
         { path: 'uploadreconcileddepositsexcel', element: <UploadReconciledDepositsExcel /> },
         { path: 'addCustomersFromSap', element: <AddCustomerFromSapPage /> },
+        { path: 'itemsFromSap', element: <ItemsFromSapPage /> },
         { path: 'manage-so/admin', element: <ManageSoAdminPage /> },
         { path: 'displayCharts', element: <DisplayCharts /> },
       ],

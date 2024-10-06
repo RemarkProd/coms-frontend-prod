@@ -11,7 +11,7 @@ const PrivacyPolicyPage = () => (
       />
       <strong>Privacy Policy </strong>{' '}
       <p>
-        Remark HB Limited built the HB Hub app as a Free app. This SERVICE is provided by Remark HB Limited at no cost
+        Remark HB Limited built the HB connect as a Free app. This SERVICE is provided by Remark HB Limited at no cost
         and is intended for use as is.
       </p>{' '}
       <p>
