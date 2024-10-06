@@ -1,15 +1,15 @@
+/* eslint-disable no-restricted-globals */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable react/jsx-key */
 /* eslint-disable camelcase */
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
-import { sentenceCase } from 'change-case';
-import { format, parse } from 'date-fns';
 import { filter } from 'lodash';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
+
 // @mui
 import {
   Card,
@@ -32,20 +32,14 @@ import { useUser } from '../../../context/UserContext';
 import Scrollbar from '../../../components/scrollbar';
 // sections
 import {
-  approveClaimedBankDepositService,
   dowloadBankDepositReceiptService,
-  getAllBankDepositsForAccountsService,
-  getBankDepositViewFilterByDateService,
-  getBankDepositViewFilterByFromDateService,
-  getBankDepositViewFilterByToDateService,
   getBankReconIdDetails,
-  getUndefinedDepositsFromViewService,
+  getUndefinedDepositsService,
   getUserProfileDetails,
-  postReconciledDataExcelService,
+  postUndefinedDepositsFromExcelService,
 } from '../../../Services/ApiServices';
 // import SystemItemListToolbar from '../sections/@dashboard/items/SystemItemListToolbar';
 import { UserListHead } from '../user';
-import DepositListToolbar from './depositListToolbar';
 import './depositStyle.css';
 
 // ----------------------------------------------------------------------
@@ -107,7 +101,7 @@ function getFormattedDateWithTime(value) {
 }
 
 export default function UserPage() {
-  const tableref = useRef(null);
+  // const tableref = useRef(null);
 
   const navigate = useNavigate();
 
@@ -173,16 +167,11 @@ export default function UserPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await getUndefinedDepositsFromViewService();
+        const response = await getUndefinedDepositsService();
 
-        if (response.status === 200 && response.data.length > 0) {
-          const filteredList = response.data;
-          setUserList(filteredList);
-
-          const customerGroupList = [...new Set(filteredList.map((obj) => obj.customer_group))];
-          const customerList = [...new Set(filteredList.map((obj) => obj.customer_name))];
-          setCustomerGroups(customerGroupList);
-          setCustomers(customerList);
+        if (response.status === 200) {
+          // const filteredList = response.data.filter((item) => item.status === 'NEW' || item.status === 'REVERSED');
+          setUserList(response.data);
         }
       } catch (error) {
         console.error('Error fetching account details:', error);
@@ -190,7 +179,7 @@ export default function UserPage() {
     }
 
     fetchData();
-  }, []);
+  }, [account]);
   console.log(USERLIST);
 
   function getFormattedPrice(value) {
@@ -223,35 +212,102 @@ export default function UserPage() {
   };
 
   console.log(exceldata);
-  const formattedData = exceldata.map((item) => ({
-    cashReceiptId: item.CashReceiptId,
-    bankReconId: item.BankReconId,
-    // status: item.Status,
-    // depositDate: item.DepositDate,
-    // entryDate: item.EntryDate,
-    // companyBank: item.CompanyBank,
-    // companyAccount: item.CompanyAccount,
-    // companyName: item.CompanyName,
-    // payFromCustomer: item.PayFromCustomer,
-    // customerName: item.CustomerName,
-    // customerGroup: item.CustomerGroup,
-    // amount: item.Amount,
-    // invoiceNumber: item.InvoiceNumber,
-    // depositType: item.DepositType,
-    // depositFromBank: item.DepositFromBank,
-    // depositFromBranch: item.DepositFromBranch,
-    // receiptNumber: item.ReceiptNumber,
-    // glDate: item.GLDate,
-    // glAmount: item.GLAmount,
-    // depositor: item.Depositor,
-    // employee: item.Employee,
-    // userName: item.UserName,
-    remarks: item.Remarks,
-    // id: item.ID,
-    // age: item.AGE,
-    // name: item.NAME,
-    // value: item.VALUE,
-  }));
+  function changeDateFormat(inputDate) {
+    console.log('Original Input:', inputDate);
+
+    // Split the date and time components
+    const parts = inputDate.split(/[\s/]+/);
+
+    if (parts.length !== 3) {
+      console.error("Invalid date format. Expected format: 'DD/MM/YY HH:MM:SS AM/PM'");
+      return null;
+    }
+
+    const [datePart, timePart, meridian] = parts;
+
+    // Parse the date part
+    const dateParts = datePart.split('/');
+    if (dateParts.length !== 3) {
+      console.error("Invalid date part. Expected format: 'DD/MM/YY'");
+      return null;
+    }
+
+    const [day, month, year] = dateParts.map(Number);
+
+    if (isNaN(day) || isNaN(month) || isNaN(year)) {
+      console.error('Invalid day, month, or year value.');
+      return null;
+    }
+
+    // Handle the 12-hour format
+    const timeParts = timePart.split(':');
+    if (timeParts.length !== 3) {
+      console.error("Invalid time part. Expected format: 'HH:MM:SS'");
+      return null;
+    }
+
+    const [hours, minutes, seconds] = timeParts.map(Number);
+
+    if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
+      console.error('Invalid hours, minutes, or seconds value.');
+      return null;
+    }
+
+    let hour = hours;
+
+    if (meridian === 'PM' && hours !== 12) {
+      hour += 12;
+    } else if (meridian === 'AM' && hours === 12) {
+      hour = 0;
+    }
+
+    // Construct a valid date string in the format 'YYYY-MM-DDTHH:MM:SS'
+    const fullYear = year < 100 ? year + 2000 : year; // Adjusting the year if needed
+
+    const date = new Date(fullYear, month - 1, day, hour, minutes, seconds);
+
+    if (isNaN(date.getTime())) {
+      console.error('Failed to create a valid Date object.');
+      return null;
+    }
+
+    const formattedDate = date.toISOString();
+
+    console.log('Formatted Date:', formattedDate);
+    return formattedDate;
+  }
+  const formattedData = exceldata.map((item) => {
+    let convertedDate = null;
+    const bankStmDate = item.bank_stm_date;
+
+    console.log(typeof bankStmDate);
+
+    if (typeof bankStmDate === 'number') {
+      convertedDate = bankStmDate ? new Date((bankStmDate - (25567 + 2)) * 86400 * 1000) : null;
+      console.log(typeof convertedDate);
+    }
+
+    return {
+      document_number: item.document_number,
+      bank_stm_date:
+        typeof bankStmDate === 'number'
+          ? convertedDate
+            ? convertedDate.toISOString().split('T')[0]
+            : ''
+          : changeDateFormat(bankStmDate),
+      company_code: item.company_code,
+      bank_name: item.bank_name,
+      bank_account_num: item.bank_account_num,
+      description: item.description,
+      amount: item.amount,
+      remarks: item.remarks,
+      status: item.status,
+      bank_account_id: item.bank_account_id,
+      deposit_type_id: item.deposit_type_id,
+      userId: account.user_id,
+    };
+  });
+
   console.log(formattedData);
 
   const saveExcelData = async () => {
@@ -259,15 +315,24 @@ export default function UserPage() {
 
     try {
       if (formattedData) {
-        postData = await postReconciledDataExcelService(formattedData);
+        postData = await postUndefinedDepositsFromExcelService(formattedData);
       }
-      console.log('Hola', postData);
     } catch (error) {
       console.error('Error fetching account details:', error);
     }
     if (postData.status === 200) {
       alert('Succefully Added');
-      window.location.reload();
+      handleCloseDialog();
+      try {
+        const response = await getUndefinedDepositsService();
+
+        if (response.status === 200) {
+          // const filteredList = response.data.filter((item) => item.status === 'NEW' || item.status === 'REVERSED');
+          setUserList(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching account details:', error);
+      }
     }
   };
 
@@ -312,27 +377,17 @@ export default function UserPage() {
   };
 
   const TABLE_HEAD = [
-    // { id: '' },
-    { id: 'attachment', label: 'Receipt Attachment', alignRight: false },
-    { id: 'status', label: 'Status', alignRight: false },
+    { id: 'document_number', label: 'Document Number', alignRight: false },
+    { id: 'bank_stm_date', label: 'Bank Stm Date', alignRight: false },
+    { id: 'deposit_type_id', label: 'Deposit Type Id', alignRight: false },
+    { id: 'bank_account_id', label: 'Bank Account Id', alignRight: false },
+    { id: 'bank_account_num', label: 'Bank Account Num', alignRight: false },
+    { id: 'amount', label: 'Amount', alignRight: false },
+    { id: 'company_code', label: 'Company Code', alignRight: false },
+    { id: 'description', label: 'Description', alignRight: false },
     { id: 'remarks', label: 'Remarks', alignRight: false },
-    { id: 'deposit_date', label: 'Deposit Date', alignRight: false },
-    { id: 'entry_date', label: 'Entry Date', alignRight: false },
-    { id: 'company_bank_name', label: 'Company Bank', alignRight: false },
-    { id: 'deposit_bank_account', label: 'Company Account', alignRight: false },
-    { id: 'company_name', label: 'Company Name', alignRight: false },
-    { id: 'customer_code', label: 'Customer Code', alignRight: false },
-    { id: 'customer', label: 'Customer Name', alignRight: false },
-    { id: 'customer_group', label: 'Customer Group', alignRight: false },
-    { id: 'amount', label: sentenceCase('amount'), alignRight: true },
-    { id: 'invoice_number', label: 'Invoice Number', alignRight: false },
-    { id: 'type', label: 'Deposit Type', alignRight: false },
-    { id: 'deposit_bank', label: 'Deposit From Bank', alignRight: false },
-    { id: 'deposit_bank_branch', label: 'Deposit From Branch', alignRight: false },
-    { id: 'receipt_number', label: 'Receipt Number', alignRight: false },
-    { id: 'depositor', label: 'Depositor', alignRight: false },
-    { id: 'employee_name', label: 'Employee', alignRight: false },
-    { id: 'user_name', label: 'User Name', alignRight: false },
+    { id: 'status', label: 'Status', alignRight: false },
+    // { id: 'bank_name', label: 'Bank Name', alignRight: false },
   ];
 
   const handleRequestSort = (event, property) => {
@@ -350,23 +405,6 @@ export default function UserPage() {
     setSelected([]);
   };
 
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
-    selectedUsers.push(name);
-    let newSelected = [];
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
-    }
-    setSelected(newSelected);
-    console.log(selected);
-  };
-
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -376,214 +414,22 @@ export default function UserPage() {
     setRowsPerPage(parseInt(event.target.value, 10));
   };
 
-  const handleFilterByName = (event) => {
-    setPage(0);
-    setFilterName(event.target.value);
-  };
-
-  const [filterInfo, setFilterInfo] = useState({
-    from: '',
-    to: '',
-    amount: '',
-    group: '',
-    status: '',
-    username: '',
-  });
-
-  const handleFilterInfo = (e) => {
-    console.log(e.target.name, e.target.value);
-    setFilterInfo({ ...filterInfo, [e.target.name]: e.target.value });
-  };
-  console.log(filterInfo);
-
-  const handleDateChange = (date, name) => {
-    const formattedDate = format(date, 'dd/MM/yy');
-    setFilterInfo({ ...filterInfo, [name]: formattedDate });
-    // setFilterDetails1({ ...filterDetails1, from: formattedDate });
-  };
-
-  const [fromDate, setFromDate] = useState(null);
-  const handleFromDate = (event) => {
-    setPage(0);
-    setFromDate(event.target.value);
-  };
-  console.log(fromDate);
-
-  const [toDate, setToDate] = useState(null);
-  const handleToDate = (event) => {
-    setPage(0);
-    setToDate(event.target.value);
-  };
-  console.log(toDate);
-
-  const handleClearDate = async (event) => {
-    const response = await getAllBankDepositsForAccountsService(user);
-
-    if (response.status === 200) {
-      setUserList(response.data);
-      setToDate('');
-      setFromDate('');
-      setFilterInfo({
-        from: '',
-        to: '',
-        amount: '',
-        group: '',
-        status: '',
-        username: '',
-      });
-    } else {
-      alert('Process failed! Please try again');
-    }
-  };
-  const parseDate = (dateString) => parse(dateString, 'dd/MM/yy', new Date());
-  function convertToFrontendDate(backendDateString) {
-    try {
-      const date = new Date(backendDateString);
-
-      // if (isNaN(date.getTime())) {
-      //   throw new Error('Invalid date');
-      // }
-      const day = date.toLocaleDateString('en-US', { weekday: 'short' });
-      const month = date.toLocaleDateString('en-US', { month: 'short' });
-      const dayOfMonth = date.getDate().toString().padStart(2, '0');
-      const year = date.getFullYear();
-      const time = date.toTimeString().split(' ')[0];
-      // const timezone = date.toTimeString().split(' ')[1];
-      const frontendDateString = `${day} ${month} ${dayOfMonth} ${year} ${time} `;
-
-      return frontendDateString;
-    } catch (error) {
-      console.error('Error while converting date:', error);
-      return null;
-    }
-  }
-
-  const handleDateFilter = async () => {
-    let filteredData = USERLIST;
-
-    if (filterInfo.from && filterInfo.to) {
-      const x = parseDate(filterInfo.to);
-      const y = parseDate(filterInfo.from);
-      const fromDepositDateBackend = convertToFrontendDate(y);
-      const toDepositDateBackend = convertToFrontendDate(x);
-      const requestBody = {
-        toDepositDate: toDepositDateBackend,
-        fromDepositDate: fromDepositDateBackend,
-      };
-      const response = await getBankDepositViewFilterByDateService(user, requestBody);
-
-      console.log(response.data);
-
-      if (response.status === 200) {
-        filteredData = response.data.filter((item) => item.status === 'NEW' || item.status === 'REVERSED');
-      }
-    }
-
-    if (filterInfo.from && !filterInfo.to) {
-      const requestBody = {
-        fromDepositDate: filterInfo.from,
-      };
-      const response = await getBankDepositViewFilterByFromDateService(user, requestBody);
-
-      console.log(response.data);
-
-      if (response.status === 200) {
-        filteredData = response.data.filter((item) => item.status === 'NEW' || item.status === 'REVERSED');
-      }
-    }
-
-    if (filterInfo.to && !filterInfo.from) {
-      const requestBody = {
-        toDepositDate: filterInfo.to,
-      };
-      const response = await getBankDepositViewFilterByToDateService(user, requestBody);
-
-      if (response.status === 200) {
-        filteredData = response.data.filter((item) => item.status === 'NEW' || item.status === 'REVERSED');
-      }
-    }
-
-    if (filterInfo.amount) {
-      filteredData = filteredData.filter((item) => item.amount === filterInfo.amount);
-    }
-
-    if (filterInfo.group) {
-      filteredData = filteredData.filter((item) => item.customer_group === filterInfo.group);
-    }
-
-    if (filterInfo.customer) {
-      filteredData = filteredData.filter((item) => item.customer_name === filterInfo.customer);
-    }
-
-    if (filterInfo.status) {
-      filteredData = filteredData.filter((item) => item.bank_status === filterInfo.status);
-    }
-
-    if (filterInfo.username) {
-      filteredData = filteredData.filter((item) => item.user_name === filterInfo.username);
-    }
-
-    setUserList(filteredData);
-  };
-
-  const approveDeposits = async (id, remarks) => {
-    try {
-      const requestBody = {
-        cashReceiptId: id,
-        remarks,
-      };
-
-      const response = await approveClaimedBankDepositService(user, requestBody);
-
-      if (response.status === 200) {
-        const deposits = await getUndefinedDepositsFromViewService();
-
-        if (deposits && deposits.status === 200 && deposits.data.length > 0) {
-          const filteredList = deposits.data;
-          setUserList(filteredList);
-
-          const customerGroupList = [...new Set(filteredList.map((obj) => obj.customer_group))];
-          const customerList = [...new Set(filteredList.map((obj) => obj.customer_name))];
-
-          setCustomerGroups(customerGroupList);
-          setCustomers(customerList);
-        }
-
-        alert('Deposit has been confirmed!');
-      } else {
-        alert('Process failed! Try again');
-      }
-    } catch (error) {
-      console.error('Error during deposit approval:', error);
-      alert('An error occurred during the deposit approval process. Please try again later.');
-    }
-  };
-
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
   const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
   const isNotFound = !filteredUsers.length && !!filterName;
 
   const exportData = filteredUsers.map((item) => ({
-    BankReconId: item.bank_recon_id,
-    Remarks: '',
-    DepositDate: getFormattedDateWithTime(item.deposit_date),
-    EntryDate: getFormattedDateWithTime(item.creation_date),
-    CompanyBank: item.company_bank,
-    CompanyAccount: item.company_account,
-    CompanyName: item.company_name,
-    PayFromCustomer: item.customer_code,
-    CustomerName: item.customer_name,
-    CustomerGroup: item.customer_group,
-    Amount: item.amount,
-    InvoiceNumber: item.invoice_number,
-    DepositType: item.deposit_type_name,
-    DepositFromBank: item.depositor_bank,
-    DepositFromBranch: item.depositor_branch,
-    ReceiptNumber: item.receipt_number,
-    CashReceiptId: item.cash_receipt_id,
-    Depositor: item.depositor_name,
-    Employee: item.employee_name,
-    UserName: item.user_name,
+    document_number: item.document_number,
+    bank_stm_date: getFormattedDateWithTime(item.bank_stm_date),
+    deposit_type_id: item.deposit_type_id,
+    bank_account_id: item.bank_account_id,
+    bank_account_num: item.bank_account_num,
+    amount: item.amount,
+    company_code: item.company_code,
+    description: item.description,
+    remarks: item.remarks,
+    status: item.status,
+    // bank_name: item.bank_name,
   }));
 
   return (
@@ -604,7 +450,7 @@ export default function UserPage() {
             onClick={() => approveDeposits(selected)}
             style={{ backgroundColor: 'lightgray', color: 'black', padding: '9px', marginRight: '20px' }}
           >
-            Confirm
+            Reconcile
           </Button> */}
           {/* <Button
             variant="text"
@@ -635,12 +481,12 @@ export default function UserPage() {
               }
             }}
           >
-            Upload Excel Data{' '}
+            Upload (Unidentified){' '}
           </Button> */}
         </Stack>
 
         <Card>
-          <DepositListToolbar
+          {/* <DepositListToolbar
             numSelected={selected.length}
             filterName={filterName}
             onFilterName={handleFilterByName}
@@ -659,11 +505,11 @@ export default function UserPage() {
             customerList={customers}
             onDateChange={handleDateChange}
             bankstatuslist={bankReconIdAll}
-          />
+          /> */}
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
-              <Table ref={tableref}>
+              <Table>
                 <UserListHead
                   order={order}
                   orderBy={orderBy}
@@ -677,38 +523,24 @@ export default function UserPage() {
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                     const {
-                      bank_recon_id,
-                      bank_status,
+                      document_number,
+                      bank_stm_date,
+                      company_code,
+                      bank_name,
+                      bank_account_num,
+                      description,
                       amount,
-                      cash_receipt_id,
-                      company_account,
-                      company_bank,
-                      company_name,
-                      deposit_date,
-                      deposit_type_name,
-                      depositor_bank,
-                      depositor_branch,
-                      depositor_name,
-                      full_name,
-                      receipt_number,
                       remarks,
                       status,
-                      uploaded_filename,
-                      user_name,
-                      employee_name,
-                      invoice_number,
-                      customer_name,
-                      reject_reason,
-                      customer_code,
-                      customer_group,
-                      creation_date,
+                      bank_account_id,
+                      deposit_type_id,
                     } = row;
 
-                    const selectedUser = selected.indexOf(cash_receipt_id) !== -1;
+                    const selectedUser = selected.indexOf(document_number) !== -1;
                     // const selectedUser = selected.findIndex((object) => object.itemId === cash_receipt_id) !== -1;
 
                     return (
-                      <TableRow hover key={cash_receipt_id} tabIndex={-1} role="checkbox" selected={selectedUser}>
+                      <TableRow hover key={document_number} tabIndex={-1} role="checkbox" selected={selectedUser}>
                         {/* <TableCell padding="checkbox">
                           <Checkbox
                             checked={selectedUser}
@@ -716,75 +548,35 @@ export default function UserPage() {
                             // onChange={(event) => handleClick(event, { itemId: cash_receipt_id })}
                           />
                         </TableCell> */}
-                        {/* <TableCell align="left">
-                          <button style={{ width: '100%' }} onClick={() => approveDeposits(cash_receipt_id, remarks)}>
-                            Confirm
-                          </button>
-                        </TableCell> */}
-                        <TableCell align="left" className="viewTable">
-                          <button style={{ width: '100%' }} onClick={() => viewAttachment(uploaded_filename)}>
-                            view
-                          </button>
+                        <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
+                          {document_number}
                         </TableCell>
-                        <TableCell align="left" className="viewTable">
-                          {bank_status}
+                        <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
+                          {getFormattedDateWithTime(bank_stm_date)}
                         </TableCell>
-                        <TableCell align="left" className="viewTable">
+                        <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
+                          {deposit_type_id}
+                        </TableCell>
+                        <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
+                          {bank_account_id}
+                        </TableCell>
+                        <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
+                          {bank_account_num}
+                        </TableCell>
+                        <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
+                          {amount}
+                        </TableCell>
+                        <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
+                          {company_code}
+                        </TableCell>
+                        <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
+                          {description}
+                        </TableCell>
+                        <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
                           {remarks}
                         </TableCell>
-
-                        <TableCell align="left" className="viewTable">
-                          {/* {getFormattedDate(deposit_date)} */}
-                          {getFormattedDateWithTime(deposit_date)}
-                        </TableCell>
-                        <TableCell align="left" className="viewTable">
-                          {/* {getFormattedDate(deposit_date)} */}
-                          {getFormattedDateWithTime(creation_date)}
-                        </TableCell>
-                        <TableCell align="left" className="viewTable">
-                          {company_bank}
-                        </TableCell>
-                        <TableCell align="left" className="viewTable">
-                          {company_account}
-                        </TableCell>
-                        <TableCell align="left" className="viewTable">
-                          {company_name}
-                        </TableCell>
-                        <TableCell align="left" className="viewTable">
-                          {customer_code}
-                        </TableCell>
-                        <TableCell align="left" className="viewTable">
-                          {customer_name}
-                        </TableCell>
-                        <TableCell align="left" className="viewTable">
-                          {customer_group}
-                        </TableCell>
-                        <TableCell align="right" className="viewTable">
-                          {getFormattedPrice(amount)}
-                        </TableCell>
-                        <TableCell align="left" className="viewTable">
-                          {invoice_number}
-                        </TableCell>
-                        <TableCell align="left" className="viewTable">
-                          {deposit_type_name}
-                        </TableCell>
-                        <TableCell align="left" className="viewTable">
-                          {depositor_bank}
-                        </TableCell>
-                        <TableCell align="left" className="viewTable">
-                          {depositor_branch}
-                        </TableCell>
-                        <TableCell align="left" className="viewTable">
-                          {receipt_number}
-                        </TableCell>
-                        <TableCell align="left" className="viewTable">
-                          {depositor_name}
-                        </TableCell>
-                        <TableCell align="left" className="viewTable">
-                          {employee_name}
-                        </TableCell>
-                        <TableCell align="left" className="viewTable">
-                          {user_name}
+                        <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
+                          {status}
                         </TableCell>
                       </TableRow>
                     );

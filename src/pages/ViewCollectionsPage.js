@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 import PropTypes from 'prop-types';
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
-import ManageUndifinedDepositsPage from '../sections/@dashboard/deposits/ManageUndifinedDepositsPage';
+import ManageUndifinedDepositsPage from '../sections/@dashboard/deposits/ViewUnidentifiedDepositsPage';
 // import ShowIdentifiedDepositsPage from '../sections/@dashboard/deposits/ShowIdentifiedDepositsPage';
 import ShowNewDepositsPage from './DepositsViewPage';
 // css
