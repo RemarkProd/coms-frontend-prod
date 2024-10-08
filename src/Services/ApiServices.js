@@ -3,8 +3,8 @@
 import axios from 'axios';
 import getCookieService from './GetCookieService';
 
-const usersUrl = 'http://182.160.114.100:5001/';
-// const usersUrl = 'http://182.160.114.100:5003/';
+// const usersUrl = 'http://182.160.114.100:5001/';
+const usersUrl = 'http://182.160.114.100:5003/';
 // const usersUrl = 'http://localhost:5001/';
 
 const sapTokenUrl =
@@ -1778,6 +1778,16 @@ export const getCustomersFromSap = async () => {
   }
 };
 
+export const getCustomersByGroupFromSap = async (id) => {
+  try {
+    return await axios.get(`${usersUrl}add-customer-from-sap/filter/${id}`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
 export const getItemsFromSapService = async () => {
   try {
     return await axios.get(`${usersUrl}item-from-sap`);
@@ -1791,6 +1801,16 @@ export const getItemsFromSapService = async () => {
 export const addCustomersFromSap = async (bodyInfo) => {
   try {
     return await axios.post(`${usersUrl}add-customer-from-sap/add`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err;
+  }
+};
+
+export const addAllCustomersFromSap = async (bodyInfo) => {
+  try {
+    return await axios.post(`${usersUrl}add-customer-from-sap/add/all`, bodyInfo);
   } catch (err) {
     console.log(err.message);
 

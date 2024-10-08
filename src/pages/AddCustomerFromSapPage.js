@@ -8,9 +8,10 @@ import Select from 'react-select';
 import { useUser } from '../context/UserContext';
 // services
 import {
-  addCustomersFromSap,
-  addCustomersFromSapErrorLog,
+  addAllCustomersFromSap,
+  // addCustomersFromSapErrorLog,
   getCustomerGroupService,
+  getCustomersByGroupFromSap,
   getCustomersFromSap,
   getUserProfileDetails,
 } from '../Services/ApiServices';
@@ -21,9 +22,11 @@ import '../_css/Utils.css';
 
 export default function TestSapApiPage() {
   const { user } = useUser();
+  const [selectedGroup, setSelectedGroup] = useState(null);
 
   const getCustomers = async () => {
     try {
+      if (selectedGroup) return await getCustomersByGroupFromSap(selectedGroup);
       return await getCustomersFromSap();
     } catch (error) {
       console.error('Error fetching customers:', error);
@@ -72,7 +75,6 @@ export default function TestSapApiPage() {
   console.log(customerGroups);
 
   const [inputValue, setInputValue] = useState('');
-  const [selectedGroup, setSelectedGroup] = useState(null);
   const filteredOptions = customerGroups
     .filter((option) => option.cust_group_name.toLowerCase().includes(inputValue.toLowerCase()))
     .map((option) => ({ value: option.cust_group_id, label: option.cust_group_name }));
@@ -97,52 +99,34 @@ export default function TestSapApiPage() {
 
   const addCustomer = async () => {
     setOpen(true);
-    const customers = await getCustomers();
 
-    if (customers && customers.data) {
-      const customerList = customers.data;
-      console.log(customerList);
+    try {
+      const customers = await getCustomers();
 
-      try {
-        await Promise.all(
-          customerList.map(async (element) => {
-            await new Promise((resolve) => setTimeout(resolve, 100));
+      if (customers && customers.data) {
+        const customerList = customers.data.customers;
+        console.log(customerList);
 
-            if (
-              element.BusinessPartnerGrouping === 'ZDOC' &&
-              element.BusinessPartnerType === selectedGroup.toString()
-            ) {
-              const requestBody = {
-                businessPartner: element.BusinessPartner || '',
-                businessPartnerFullname: element.BusinessPartnerFullName || '',
-                businessPartnerCategory: parseInt(element.BusinessPartnerCategory, 10) || null,
-                businessPartnerGrouping: element.BusinessPartnerGrouping || '',
-                businessPartnerIdByExtSystem: element.BusinessPartnerIDByExtSystem || '',
-                businessPartnerType: element.BusinessPartnerType || '',
-              };
+        try {
+          const requestBody = {
+            content: customerList,
+          };
+          await addAllCustomersFromSap(requestBody);
 
-              const response = await addCustomersFromSap(requestBody);
-
-              if (response.status !== 200) {
-                const errorRequestBody = {
-                  businessPartner: element.BusinessPartner || '',
-                  errorCode: response.code || '',
-                  errorMessage: response.message || '',
-                };
-                await addCustomersFromSapErrorLog(errorRequestBody);
-              }
-            }
-          })
-        );
-
-        // alert('Successfully added!');
+          handleClose();
+          alert('Customers successfully added!');
+        } catch (error) {
+          console.error('Error adding customers:', error);
+          alert('Error adding customers. Please check the console for details.');
+        }
+      } else {
         handleClose();
-      } catch (error) {
-        console.error('Error adding customers:', error);
-        alert('Error adding customers. Please check the console for details.');
+        alert('Process failed! No customer data found.');
       }
-    } else {
-      alert('Process failed! Try again.');
+    } catch (error) {
+      handleClose();
+      console.error('Error fetching customers:', error);
+      alert('Error fetching customers. Please check the console for details.');
     }
   };
 
