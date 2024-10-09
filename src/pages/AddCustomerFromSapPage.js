@@ -79,6 +79,8 @@ export default function TestSapApiPage() {
     .filter((option) => option.cust_group_name.toLowerCase().includes(inputValue.toLowerCase()))
     .map((option) => ({ value: option.cust_group_id, label: option.cust_group_name }));
 
+  const groupList = [{ value: null, label: 'All' }, ...filteredOptions];
+
   const handleChange = (selectedOption) => {
     setSelectedGroup(selectedOption.value);
   };
@@ -151,17 +153,18 @@ export default function TestSapApiPage() {
         flexDirection={'row'}
         className="indexing"
       >
-        <div className="col-auto" style={{ display: 'flex', marginRight: '20px', width: 'auto' }}>
-          <span style={{ marginRight: '5px' }}>Customer Group</span>
-          <div>
+        <div className="col-auto" style={{ display: 'flex', marginRight: '40px', width: '60%' }}>
+          <span style={{ marginRight: '5px', whiteSpace: 'nowrap' }}>Customer Group</span>
+          <div style={{ width: '100%' }}>
             <Select
               id="customer"
               name="customer"
               // value={filterDetails.customer ? { value: filterDetails.customer, label: filterDetails.customer } : null}
               // value={selectedOption}
+              defaultValue={{ value: null, label: 'All' }}
               onChange={handleChange}
               onInputChange={handleInputChange}
-              options={filteredOptions}
+              options={groupList}
               placeholder="Type to select..."
               isClearable
             />
