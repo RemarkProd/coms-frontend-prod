@@ -77,7 +77,7 @@ export default function TestSapApiPage() {
   const [inputValue, setInputValue] = useState('');
   const filteredOptions = customerGroups
     .filter((option) => option.cust_group_name.toLowerCase().includes(inputValue.toLowerCase()))
-    .map((option) => ({ value: option.cust_group_id, label: option.cust_group_name }));
+    .map((option) => ({ value: option.cust_group_id, label: `${option.cust_group_name} (${option.cust_group_id})` }));
 
   const groupList = [{ value: null, label: 'All' }, ...filteredOptions];
 
