@@ -1,4 +1,4 @@
-export const dataSource = [
+export const dataSourceforGauge = [
     {
       name: 'Summer',
       mean: 35,

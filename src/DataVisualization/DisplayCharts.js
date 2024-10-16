@@ -25,11 +25,16 @@ import MuiAccordionDetails from '@mui/material/AccordionDetails';
 import MuiAccordionSummary from '@mui/material/AccordionSummary';
 import { styled } from '@mui/material/styles';
 import { format, parse } from 'date-fns';
+import { Chart, Legend, Series, ValueAxis } from 'devextreme-react/chart';
+import { Label, Tooltip } from 'devextreme-react/pie-chart';
+import { FieldChooser, PivotGrid } from 'devextreme-react/pivot-grid';
+import 'devextreme/dist/css/dx.light.css';
 import * as React from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import DatePicker from 'react-datepicker';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
+
 // @mui
 import {
   Button,
@@ -43,6 +48,9 @@ import {
   Typography,
 } from '@mui/material';
 import { sentenceCase } from 'change-case';
+import { CircularGauge, Font, Range, RangeContainer, Scale } from 'devextreme-react/circular-gauge';
+import { SelectBox } from 'devextreme-react/select-box';
+import TreeMap, { Colorizer, Size, Title } from 'devextreme-react/tree-map';
 import Select from 'react-select';
 import {
   dowloadBankDepositReceiptService,
@@ -54,10 +62,14 @@ import {
   getBrandingAssetsItemsService,
   getCustomerSummaryList,
   getCustomerTotalList,
+  getDrillView,
   getRegionService,
   getShopsListService,
   getUserProfileDetails,
 } from '../Services/ApiServices';
+import service from './dataDrilldown';
+import { citiesPopulation } from './dataTreeMapDrill';
+import TreeMapBreadcrumbs from './TreeMapBreadcrumbs';
 // components
 import Progressbar from '../components/ProgressBar/Progress_bar';
 import Scrollbar from '../components/scrollbar';
@@ -67,6 +79,13 @@ import { useUser } from '../context/UserContext';
 
 import { UserListHead } from '../sections/@dashboard/user';
 
+import { dataSourceforGauge, seasonLabel } from './dataGauge';
+
+function customizeText({ valueText }) {
+  return `${valueText} °C`;
+}
+
+const colors = ['#6babac', '#e55253'];
 // ----------------------------------------------------------------------
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -153,6 +172,17 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
   padding: theme.spacing(2),
   borderTop: '1px solid rgba(0, 0, 0, .125)',
 }));
+
+function drillInfoClick(node) {
+  if (node) {
+    node.drillDown();
+  }
+}
+
+function nodeClick(e) {
+  e.node.drillDown();
+}
+
 export default function DisplayCharts() {
   const navigate = useNavigate();
   const tableref = useRef(null);
@@ -204,6 +234,66 @@ export default function DisplayCharts() {
     setPage(0);
     setRowsPerPage(parseInt(event.target.value, 10));
   };
+
+  const [standardBarList, setStandardBarList] = useState([]);
+  const [isFirstLevel, setIsFirstLevel] = useState(true);
+  const [data, setData] = useState(service.filterData(''));
+  const customizePoint = useCallback(
+    () => ({
+      color: colors[Number(isFirstLevel)],
+      hoverStyle: !isFirstLevel
+        ? {
+            hatching: 'none',
+          }
+        : {},
+    }),
+    [isFirstLevel]
+  );
+  const onPointClick = useCallback(
+    (e) => {
+      if (isFirstLevel) {
+        setIsFirstLevel(false);
+        setData(service.filterData(e.target.originalArgument.toString()));
+      }
+    },
+    [isFirstLevel, setData, setIsFirstLevel]
+  );
+  const onButtonClick = useCallback(() => {
+    if (!isFirstLevel) {
+      setIsFirstLevel(true);
+      setData(service.filterData(''));
+    }
+  }, [isFirstLevel, setData, setIsFirstLevel]);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        if (account) {
+          console.log(account.user_id);
+          const response = await getStandardBarDataView(user); // Assuming this function is defined
+
+          if (response.status === 200) {
+            setStandardBarList(response.data);
+          }
+          console.log(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching account details:', error);
+      }
+    }
+
+    fetchData();
+  }, [account]);
+
+  const [valuess, setValuess] = useState(dataSourceforGauge[0].mean);
+  const [subvalues, setSubvalues] = useState([dataSourceforGauge[0].min, dataSourceforGauge[0].max]);
+  const onSelectionChanged = useCallback(
+    ({ selectedItem }) => {
+      setValuess(selectedItem.mean);
+      setSubvalues([selectedItem.min, selectedItem.max]);
+    },
+    [setValuess, setSubvalues]
+  );
 
   useEffect(() => {
     async function fetchData() {
@@ -268,6 +358,291 @@ export default function DisplayCharts() {
     fetchData(); // Call the async function when the component mounts
   }, [user]);
   console.log(summaryCustomerList);
+  const [drillDownData, setDrillDownData] = useState([]);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        if (account) {
+          console.log(account.user_id);
+          const response = await getDrillView(user); // Assuming this function is defined
+
+          if (response.status === 200) {
+            setDrillDownData(response.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching account details:', error);
+      }
+    }
+
+    fetchData();
+  }, [account]);
+
+  const sampleData = drillDownData.map((item) => ({
+    companyAccount: item.company_account, // Assuming deposit_type_name as category
+    companyName: item.company_name, // Assuming company_name as subcategory
+    customerName: item.customer_name, // Assuming customer_name as product
+    depositTypeName: item.deposit_type_name, // Assuming date is constant
+    sum: item.sum,
+  }));
+
+  const dataSource = {
+    store: {
+      type: 'array',
+      key: 'sum', // Assuming 'sum' can act as a unique identifier
+      data: sampleData,
+    },
+    fields: [
+      {
+        caption: 'Deposit Type',
+        dataField: 'depositTypeName',
+        area: 'row',
+      },
+
+      {
+        caption: 'Company Name',
+        dataField: 'companyName',
+        area: 'row',
+      },
+      {
+        caption: 'Company Account',
+        dataField: 'companyAccount',
+        area: 'row',
+      },
+
+      {
+        caption: 'Customer Name',
+        dataField: 'customerName',
+        area: 'row',
+      },
+
+      {
+        caption: 'Company Account',
+        dataField: 'companyAccount',
+        area: 'column',
+      },
+
+      {
+        caption: 'Customer Name',
+        dataField: 'customerName',
+        area: 'column',
+      },
+
+      {
+        caption: 'Sum',
+        dataField: 'sum',
+        dataType: 'number',
+        summaryType: 'sum',
+        format: 'currency',
+        area: 'data',
+      },
+    ],
+  };
+  const handleContentReady = (e) => {
+    // const headers = document.querySelectorAll('.dx-area-row-cell.dx-bottom-border');
+    // console.log(headers);
+    // headers.forEach((headers) => {
+    //   headers.style.backgroundColor = 'darkblue';
+    //   headers.style.color = 'white'; // Optional: Change text color to white for better visibility
+    // });
+
+    const rowHeaders = document.querySelectorAll('.dx-row-total.dx-grandtotal');
+    // const rowForTotal = document.getElementsByClassName('dx-row-total dx-grandtotal dx-last-cell');
+    // rowForTotal.style.backgroundColor = 'red';
+    rowHeaders.forEach((header) => {
+      header.style.backgroundColor = 'darkblue';
+      header.style.color = 'white'; // Optional: Change text color to white for better visibility
+    });
+
+    // Targeting column headers and applying a red background
+    const columnHeaders = document.querySelectorAll('#pivotGrid .dx-pivotgrid-area .dx-area-column .dx-area-field');
+    columnHeaders.forEach((header) => {
+      header.style.backgroundColor = 'red';
+      header.style.color = 'white'; // Optional: Change text color to white for better visibility
+    });
+    // Hide the grand total row
+    console.log(e.component.getDataSource());
+    console.log(document.getElementsByClassName('dx-row-total dx-grandtotal'));
+    // const paragraph = document.getElementsByClassName('dx-row-total dx-grandtotal');
+    // paragraph.disabled = false;
+    // paragraph.classList.toggle('custom-background');
+    // e.component.getDataSource().collapseAll('column');
+    //   const grandTotalRow = document.querySelector('dx-row-total dx-grandtotal');
+    // if (grandTotalRow) {
+    //   grandTotalRow.style.display = 'none';
+    // }
+
+    const elements = document.querySelectorAll('.dx-row-total.dx-grandtotal');
+    // const grandTotalRow = document.querySelector('.dx-column-grand-total.dx-row-total');
+    // if (grandTotalRow) {
+    //   grandTotalRow.style.visibility = 'hidden';
+    // }
+    elements.forEach((element) => {
+      const elements = document.querySelector(
+        '#pivotGrid > div.dx-pivotgrid-container > table > tr:nth-child(3) > td.dx-area-column-cell > div > div > div > div.dx-scrollable-content > table > thead > tr:nth-child(1) > td'
+      );
+      //   elements.style.visibility = 'hidden';
+      // elements.innerText = 'All Deposites According to the Time Period';
+      // element.style.fontWeight = 'bold';
+      // elements.style.fontWeight = 'bold';
+      console.log(elements);
+      // if (element.innerText.trim() === 'Grand Total') {
+      //   const grandTotalRow = element.closest('.dx-row-total');
+      //   grandTotalRow.style.visibility = 'hidden';
+      // }
+    });
+    //  const elements2=document.querySelector('#pivotGrid > div.dx-pivotgrid-container > table > tr.dx-bottom-row > td.dx-area-row-cell.dx-bottom-border > div > div > div > div.dx-scrollable-content > table > tbody > tr:nth-child(3) > td');
+    //  elements2.innerText = 'Total';
+
+    // elements.forEach((element) => {
+    //   if (element.innerText.trim() === 'Grand Total') {
+    //     element.innerText = 'Deposite According to the Time Period'; // Change the inner text to the new name
+    //     element.style.fontWeight = 'bold';
+    //   }
+    // });
+    // dx-row-total dx-grandtotal dx-last-cell
+    // dx-row-total dx-grandtotal
+    // elements.forEach((element) => {
+    //   if (element.innerText.trim() === 'Grand Total') {
+    //     // Check if it's a row or column grand total
+    //     const parentCell = element.closest('.dx-row-total');
+    //     if (parentCell.classList.contains('dx-column-grand-total')) {
+    //       element.innerText = 'Deposite According to the Time Period'; // Change the inner text to the new name
+
+    //     }
+    //   }
+    // });
+
+    // const elements = document.querySelectorAll('.dx-row-total.dx-grandtotal');
+    // elements.forEach((element) => {
+    //   if (element.innerText.trim() === 'Grand Total') {
+    //     const grandTotalRow = element.closest('.dx-row-total');
+    //     grandTotalRow.style.visibility = 'hidden';
+    //   }
+    // });
+  };
+
+  // Modify data source structure
+  const samplesData = [
+    {
+      __rowHeader__: 'Customer Group',
+      __rowsHeader__: 'Customer Name',
+      __rowssHeader__: 'Deposite Type Name',
+      __colHeader__: 'Today Deposite',
+      __col2Header__: 'Seven Day Deposite',
+      __col3Header__: 'Monthly Deposite',
+      customerGroup: 'Herlan',
+      customerName: 'Ahmed Raihan',
+      depositDate: '25-8-2000',
+      depositTypeName: 'bcash',
+      todaysDeposit: '100000',
+      sevenDayDeposit: '1000000',
+      monthlyDeposit: '100000000',
+    },
+    {
+      __rowHeader__: 'Customer Group',
+      __rowsHeader__: 'Customer Name',
+      __rowssHeader__: 'Deposite Type Name',
+      __colHeader__: 'Today Deposite',
+      __col2Header__: 'Seven Day Deposite',
+      __col3Header__: 'Monthly Deposite',
+      customerGroup: 'Helcan',
+      customerName: 'John Doe',
+      depositDate: '15-7-2001',
+      depositTypeName: 'bKash',
+      todaysDeposit: '50000',
+      sevenDayDeposit: '300000',
+      monthlyDeposit: '2000000',
+    },
+    {
+      __rowHeader__: 'Customer Group',
+      __rowsHeader__: 'Customer Name',
+      __rowssHeader__: 'Deposite Type Name',
+      __colHeader__: 'Today Deposite',
+      __col2Header__: 'Seven Day Deposite',
+      __col3Header__: 'Monthly Deposite',
+      customerGroup: 'Velcan',
+      customerName: 'Jane Smith',
+      depositDate: '5-6-1999',
+      depositTypeName: 'Rocket',
+      todaysDeposit: '200000',
+      sevenDayDeposit: '1200000',
+      monthlyDeposit: '10000000',
+    },
+  ];
+
+  const datasSource = {
+    store: {
+      type: 'array',
+      key: 'depositDate',
+      data: samplesData,
+    },
+    fields: [
+      {
+        caption: 'Row Header',
+        dataField: '__rowHeader__',
+        area: 'row',
+      },
+      {
+        caption: 'Customer Group ',
+        dataField: 'customerGroup',
+        area: 'row',
+      },
+
+      {
+        caption: 'Row Header',
+        dataField: '__rowsHeader__',
+        area: 'row',
+      },
+
+      {
+        caption: 'Customer Name',
+        dataField: 'customerName',
+        area: 'row',
+      },
+      {
+        caption: 'Row Header',
+        dataField: '__rowssHeader__',
+        area: 'row',
+      },
+      {
+        caption: 'Deposit Type Name',
+        dataField: 'depositTypeName',
+        area: 'row',
+      },
+
+      {
+        caption: "Today's Deposit",
+        dataField: 'todaysDeposit',
+        area: 'data',
+        dataType: 'number',
+        summaryType: 'sum',
+        format: 'currency',
+      },
+
+      // Seven Day Deposit
+      {
+        caption: 'Seven Day Deposit',
+        dataField: 'sevenDayDeposit',
+        area: 'data',
+        dataType: 'number',
+        summaryType: 'sum',
+        format: 'currency',
+      },
+
+      // Monthly Deposit
+      {
+        caption: 'Monthly Deposit',
+        dataField: 'monthlyDeposit',
+        area: 'data',
+        dataType: 'number',
+        summaryType: 'sum',
+        format: 'currency',
+      },
+    ],
+
+    // showColumnGrandTotals: false,
+  };
 
   const [total, setTotal] = useState(null); // Initial state is null, not an array
   const [loadingScreen, setLoadingScreen] = useState(true); // Loading state to track async operation
@@ -375,6 +750,26 @@ export default function DisplayCharts() {
     fetchData(); // Call the async function when the component mounts
   }, [account]);
   console.log(canEdit);
+
+  const [drillInfo, setDrillInfo] = useState([]);
+  const drill = useCallback(
+    (e) => {
+      const newDrillInfo = [];
+      for (let node = e.node.getParent(); node; node = node.getParent()) {
+        newDrillInfo.unshift({
+          text: node.label() || 'All Continents',
+          node,
+        });
+      }
+      if (newDrillInfo.length) {
+        newDrillInfo.push({
+          text: e.node.label(),
+        });
+      }
+      setDrillInfo(newDrillInfo);
+    },
+    [setDrillInfo]
+  );
 
   let TABLE_HEAD = [];
   if (canEdit) {
@@ -1394,79 +1789,125 @@ export default function DisplayCharts() {
             </Accordion>
             <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
               <AccordionSummary aria-controls="panel3d-content" id="panel3d-header">
-                <Typography>Collapsible Group Item #3</Typography>
+                <Typography>All Deposites According to the Time Period</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <Scrollbar>
-                  <TableContainer sx={{ minWidth: 800 }}>
-                    <Table ref={tableref}>
-                      <UserListHead
-                        order={order}
-                        orderBy={orderBy}
-                        headLabel={TABLE_HEAD_SUMMARY}
-                        rowCount={filteredSummaryUsers.length}
-                        numSelected={selected.length}
-                        onRequestSort={handleRequestSort}
-                        onSelectAllClick={handleSelectAllClick}
-                        enableReadonly
+                <>
+                  <PivotGrid
+                    id="pivotGrid"
+                    showBorders
+                    dataSource={dataSource}
+                    allowSorting
+                    allowSortingBySummary
+                    allowFiltering
+                    height={600}
+                    width={'100%'}
+                    onContentReady={handleContentReady}
+                  >
+                    {dataSource.fields.map((field) => (
+                      <FieldChooser
+                        key={field.dataField}
+                        dataField={field.dataField}
+                        caption={field.caption}
+                        area={field.area}
                       />
-                      <TableBody>
-                        {filteredSummaryUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                          const { deposit_amount, target_amount, customer_group } = row;
-
-                          const selectedUser = selected.indexOf(customer_group) !== -1;
-
-                          return (
-                            <TableRow hover key={customer_group} tabIndex={-1} role="checkbox" selected={selectedUser}>
-                              <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
-                                {customer_group}
-                              </TableCell>
-                              <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
-                                {getFormattedPrice(deposit_amount)}
-                              </TableCell>
-                              <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
-                                {getFormattedPrice(target_amount)}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                        {emptyRows > 0 && (
-                          <TableRow style={{ height: 53 * emptyRows }}>
-                            <TableCell colSpan={6} />
-                          </TableRow>
-                        )}
-                      </TableBody>
-
-                      {isNotFound && (
-                        <TableBody>
-                          <TableRow>
-                            <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                              <Paper sx={{ textAlign: 'center' }}>
-                                <Typography variant="h6" paragraph>
-                                  Not found
-                                </Typography>
-                                <Typography variant="body2">
-                                  No results found for &nbsp;
-                                  <strong>&quot;{filterName}&quot;</strong>.
-                                  <br /> Try checking for typos or using complete words.
-                                </Typography>
-                              </Paper>
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      )}
-                    </Table>
-                  </TableContainer>
-                  <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
-                    component="div"
-                    count={filteredSummaryUsers.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    ))}
+                  </PivotGrid>
+                </>
+              </AccordionDetails>
+            </Accordion>
+            <Accordion expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
+              <AccordionSummary aria-controls="panel1d-content" id="panel1d-header">
+                <Typography>Gauge Data</Typography>
+              </AccordionSummary>
+              <AccordionDetails style={{ height: '50%', overflowY: 'auto' }}>
+                <div id="gauge-demo">
+                  <CircularGauge id="gauge" value={valuess} subvalues={subvalues}>
+                    <Scale startValue={10} endValue={100} tickInterval={5}>
+                      <Label customizeText={customizeText} />
+                    </Scale>
+                    <RangeContainer>
+                      <Range startValue={10} endValue={20} color="#0077BE" />
+                      <Range startValue={20} endValue={30} color="#E6E200" />
+                      <Range startValue={30} endValue={40} color="#77DD77" />
+                    </RangeContainer>
+                    <Tooltip enabled />
+                    <Title text="Sales Order Limit Showcase">
+                      <Font size={28} />
+                    </Title>
+                  </CircularGauge>
+                  <SelectBox
+                    id="seasons"
+                    width={150}
+                    inputAttr={seasonLabel}
+                    dataSource={dataSourceforGauge}
+                    defaultValue={dataSourceforGauge[0]}
+                    displayExpr="name"
+                    onSelectionChanged={onSelectionChanged}
                   />
-                </Scrollbar>
+                </div>
+              </AccordionDetails>
+            </Accordion>
+            <Accordion expanded={expanded === 'panel5'} onChange={handleChange('panel5')}>
+              <AccordionSummary aria-controls="panel1d-content" id="panel1d-header">
+                <Typography>Drill Down with list</Typography>
+              </AccordionSummary>
+              <AccordionDetails style={{ height: '50%', overflowY: 'auto' }}>
+                <div>
+                  <TreeMap
+                    dataSource={citiesPopulation}
+                    interactWithGroup
+                    maxDepth={2}
+                    onClick={nodeClick}
+                    onDrill={drill}
+                  >
+                    <Size height={440} />
+                    <Colorizer palette="Soft" />
+                    <Title text="Drill Down With Item Master " placeholderSize={80} />
+                  </TreeMap>
+                  <TreeMapBreadcrumbs className="drill-down-title" onItemClick={drillInfoClick} treeInfo={drillInfo} />
+                </div>
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion expanded={expanded === 'panel5'} onChange={handleChange('panel5')}>
+              <AccordionSummary aria-controls="panel1d-content" id="panel1d-header">
+                <Typography>Drill Down with Charts</Typography>
+              </AccordionSummary>
+              <AccordionDetails style={{ height: '50%', overflowY: 'auto' }}>
+                <div>
+                  <Chart
+                    id="chart"
+                    title="Drill-Down Chart"
+                    customizePoint={customizePoint}
+                    onPointClick={onPointClick}
+                    className={isFirstLevel ? 'pointer-on-bars' : ''}
+                    dataSource={data}
+                  >
+                    <Series type="bar" />
+                    <ValueAxis showZero={false} />
+                    <Legend visible={false} />
+                  </Chart>
+                  {/* <Button
+                    className="button-container"
+                    text="Back"
+                    icon="chevronleft"
+                    visible={!isFirstLevel}
+                    onClick={onButtonClick}
+                    height={200}
+                  /> */}
+                  <Button
+                    // variant="contained"
+                    className="button-container"
+                    size="medium"
+                    icon="chevronleft"
+                    style={{ width: '20%' }}
+                    visible={!isFirstLevel}
+                    onClick={onButtonClick}
+                  >
+                    Back
+                  </Button>
+                </div>
               </AccordionDetails>
             </Accordion>
           </div>

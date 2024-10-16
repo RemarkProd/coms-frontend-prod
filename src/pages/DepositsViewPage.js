@@ -717,28 +717,51 @@ export default function UserPage() {
   };
 
   const onEditDeposit = async () => {
-    const requestBody = {
-      depositDate: rowData.deposit_date,
-      amount: rowData.amount,
-      payFromCustomer: rowData.pay_from_customer,
-      depositTypeId: rowData.deposit_type_id,
-      depositorName: rowData.depositor_name,
-      companyCustBankId: rowData.company_cust_bank_id,
-      companyCustBankBranchId: rowData.company_cust_bank_branch_id,
-      remittanceBankAccountId: rowData.remittance_bank_account_id,
-      receiptNumber: rowData.receipt_number,
-      invoiceNumber: rowData.invoice_number,
-      uploadedFilename: rowData.uploaded_filename,
-      remarks: rowData.remarks,
-      lastUpdatedBy: account.user_id,
-      cashReceiptId: rowData.cash_receipt_id,
-    };
-    const response = await upldateBankDepositService(user, requestBody);
+    try {
+      const requestBody = {
+        depositDate: rowData.deposit_date,
+        amount: rowData.amount,
+        payFromCustomer: rowData.pay_from_customer,
+        depositTypeId: rowData.deposit_type_id,
+        depositorName: rowData.depositor_name,
+        companyCustBankId: rowData.company_cust_bank_id,
+        companyCustBankBranchId: rowData.company_cust_bank_branch_id,
+        remittanceBankAccountId: rowData.remittance_bank_account_id,
+        receiptNumber: rowData.receipt_number,
+        invoiceNumber: rowData.invoice_number,
+        uploadedFilename: rowData.uploaded_filename,
+        remarks: rowData.remarks,
+        lastUpdatedBy: account.user_id,
+        cashReceiptId: rowData.cash_receipt_id,
+      };
 
-    const alertMessage = response.status === 200 ? 'Updated successfully' : 'Process failed! Try again';
-    alert(alertMessage);
-    closeDialog();
+      const response = await upldateBankDepositService(user, requestBody);
+
+      if (response.status === 200) {
+        await setDefaultUSER();
+        alert('Updated successfully');
+      } else {
+        alert('Process failed! Try again');
+      }
+    } catch (error) {
+      console.error('Error updating deposit:', error);
+      alert('An error occurred! Please try again.');
+    } finally {
+      closeDialog(); // Ensure dialog is closed even if there’s an error
+    }
   };
+
+  async function setDefaultUSER() {
+    const response = await getAllBankDepositsForAccountsService(user);
+
+    if (response.status === 200) {
+      setUserList(response.data);
+      const customerGroupList = [...new Set(response.data.map((obj) => obj.customer_group))];
+      const customerList = [...new Set(response.data.map((obj) => obj.customer_name))];
+      setCustomerGroups(customerGroupList);
+      setCustomers(customerList);
+    }
+  }
 
   const [filteredCustomerList, setFilteredCustomerList] = useState([]);
   const [showCustomerList, setShowFilteredCustomerList] = useState(false);
@@ -1043,6 +1066,7 @@ export default function UserPage() {
                       customer_group,
                       creation_date,
                       doc_sequence_value,
+                      pay_from_customer,
                     } = row;
 
                     const selectedUser = selected.indexOf(cash_receipt_id) !== -1;

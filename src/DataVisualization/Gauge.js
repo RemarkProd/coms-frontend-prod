@@ -10,15 +10,15 @@ import {
 } from 'devextreme-react/circular-gauge';
 import { SelectBox } from 'devextreme-react/select-box';
 import { useCallback, useState } from 'react';
-import { dataSource, seasonLabel } from './dataGauge';
+import { dataSourceforGauge, seasonLabel } from './dataGauge';
 
 function customizeText({ valueText }) {
   return `${valueText} °C`;
 }
 function App() {
-    console.log(dataSource);
-  const [value, setValue] = useState(dataSource[0].mean);
-  const [subvalues, setSubvalues] = useState([dataSource[0].min, dataSource[0].max]);
+    console.log(dataSourceforGauge);
+  const [value, setValue] = useState(dataSourceforGauge[0].mean);
+  const [subvalues, setSubvalues] = useState([dataSourceforGauge[0].min, dataSourceforGauge[0].max]);
   const onSelectionChanged = useCallback(
     ({ selectedItem }) => {
       setValue(selectedItem.mean);
@@ -67,8 +67,8 @@ function App() {
         id="seasons"
         width={150}
         inputAttr={seasonLabel}
-        dataSource={dataSource}
-        defaultValue={dataSource[0]}
+        dataSourceforGauge={dataSourceforGauge}
+        defaultValue={dataSourceforGauge[0]}
         displayExpr="name"
         onSelectionChanged={onSelectionChanged}
       />
