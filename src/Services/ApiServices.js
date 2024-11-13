@@ -455,6 +455,27 @@ export const getfnduserDetails = async () => {
     return err.message;
   }
 };
+
+export const getUsers = async () => {
+  try {
+    return await axios.get(`${usersUrl}get-fnd-user/view`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const updateUser = async (requestInfo) => {
+  try {
+    return await axios.put(`${usersUrl}get-fnd-user/`, requestInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
 export const getMainSystemMenuDetails = async () => {
   try {
     return await axios.get(`${usersUrl}get-main-system-menu/`);
@@ -1401,6 +1422,56 @@ export const getAllBankDepositsForAccountsService = async (loginToken) => {
   }
 };
 
+export const getTerritoryListsService = async (selectedTerritoryId) => {
+  try {
+    return await axios.post(`${usersUrl}get-territory-insights/territoryLists`, { selectedTerritoryId });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getTerritoryAllIdsService = async () => {
+  try {
+    return await axios.get(`${usersUrl}get-territory-insights/allIds`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export async function updateTerritoryRating(territoryId, rating) {
+  try {
+    return await axios.post(`${usersUrl}get-territory-insights/updateRatings`, { territoryId, rating });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+}
+
+export const getTerritoryPerInsightsCompetitorsService = async (selectedTerritoryId) => {
+  try {
+    return await axios.post(`${usersUrl}get-territory-insights/perInsights`, { selectedTerritoryId });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getTerritoryCompetitorsService = async (selectedTerritoryId) => {
+  try {
+    return await axios.post(`${usersUrl}get-territory-insights/perCompetitors`, { selectedTerritoryId });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
 export const getShopsListService = async (loginToken) => {
   try {
     return await axios.get(`${usersUrl}shop-master/view`, {
@@ -1586,6 +1657,16 @@ export const getAreaService = async (bodyInfo) => {
 export const getTerritoriesService = async (bodyInfo) => {
   try {
     return await axios.post(`${usersUrl}territory/`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getAllTerritoryService = async () => {
+  try {
+    return await axios.get(`${usersUrl}territory/view`);
   } catch (err) {
     console.log(err.message);
 

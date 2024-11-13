@@ -72,6 +72,7 @@ import ManageAccountPage from './pages/ManageAccountPage';
 import ManageBankFormPage from './pages/ManageBankFormPage';
 import ManageMtlCategoriesB from './pages/ManageMtlCategoriesB';
 import ManageSoAdminPage from './pages/ManageSoAdminPage';
+import MonitorTerritoryPage from './pages/MonitorTerritoryPage';
 import MtlCategoriesFormPage from './pages/MtlCategoriesFormPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import ShopRouteMasterPage from './pages/ShopRouteMasterPage';
@@ -88,6 +89,8 @@ import UploadReconciledDepositsExcel from './pages/UploadReconciledDepositsExcel
 import UserActionAssignmentPage from './pages/UserActionAssignmentPage';
 import VatposIntegrationService from './pages/VatposIntegrationService';
 import DepositsViewPage from './pages/ViewCollectionsPage';
+import ViewTerritoryDetails from './pages/ViewTerritoryDetails';
+import ViewTerritoryInsights from './pages/ViewTerritoryInsights';
 import ForgetPassword from './pages/forgetPassword';
 
 // ----------------------------------------------------------------------
@@ -204,6 +207,10 @@ export default function Router() {
         { path: 'itemsFromSap', element: <ItemsFromSapPage /> },
         { path: 'manage-so/admin', element: <ManageSoAdminPage /> },
         { path: 'displayCharts', element: <DisplayCharts /> },
+        { path: 'viewTerritoryDetails/:territory_id', element: <ViewTerritoryDetails /> },
+        { path: 'viewTerritoryInsights/:territory_id', element: <ViewTerritoryInsights /> },
+        { path: 'viewTerritoryCompetitors', element: <viewTerritoryCompetitors /> },
+        { path: 'monitorTerritory', element: <MonitorTerritoryPage /> },
       ],
     },
 

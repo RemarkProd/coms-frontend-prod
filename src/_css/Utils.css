@@ -13,3 +13,17 @@
 .colorWhite {
   color: white;
 }
+
+.textAlignCenter {
+  text-align: center;
+}
+
+.whiteSpace-nowrap {
+  white-space: nowrap;
+}
+
+.fullWidth {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 100% !important;
+}

@@ -2,12 +2,12 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable no-undef */
 
-import { Container, Grid, Stack, Typography } from '@mui/material';
+import { Container, Grid } from '@mui/material';
 import Button from '@mui/material/Button';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Select from 'react-select';
 import {
@@ -17,6 +17,8 @@ import {
   getUserProfileDetails,
 } from '../../../Services/ApiServices';
 import { useUser } from '../../../context/UserContext';
+// styles
+import '../../../_css/Utils.css';
 
 export default function AddFndUser() {
   const { user } = useUser();
@@ -71,6 +73,7 @@ export default function AddFndUser() {
   console.log(userList);
 
   const [customerGroups, setCustomerGroups] = useState([]);
+  const tdRef = useRef(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -233,21 +236,20 @@ export default function AddFndUser() {
     alert('Successfully Added!!!');
     navigate('/dashboard/showfnduser');
 
-    window.location.reload();
-
     setOpen(false);
   };
 
   return (
     <div>
-      <Container>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
-          <Typography variant="h4" gutterBottom>
+      <Container className="marginZero indexing fullWidth">
+        {/* <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}> */}
+        {/* <Typography variant="h4" gutterBottom>
             User Add
-          </Typography>
-        </Stack>
-        <Grid item xs={3}>
+          </Typography> */}
+        {/* </Stack> */}
+        <Grid item xs={2}>
           <Button
+            className="whiteSpace-nowrap"
             style={{ marginRight: '10px', fontWeight: 'bold', color: 'black', backgroundColor: 'lightgray' }}
             onClick={() => {
               handleAddRow();
@@ -257,6 +259,7 @@ export default function AddFndUser() {
           </Button>
 
           <Button
+            className="whiteSpace-nowrap"
             style={{ marginRight: '10px', fontWeight: 'bold', color: 'black', backgroundColor: 'lightgray' }}
             onClick={handleClose}
           >
@@ -265,7 +268,7 @@ export default function AddFndUser() {
         </Grid>
 
         <div>
-          <form className="form-horizontal" style={{ marginTop: '5%' }}>
+          <form className="form-horizontal" style={{ marginTop: '10px' }}>
             <div className="table-responsive">
               <table className="table table-bordered table-striped table-highlight">
                 <thead>
@@ -294,7 +297,7 @@ export default function AddFndUser() {
                   {showMenuLines &&
                     fnduser.map((row, index) => (
                       <tr key={index}>
-                        <td style={{ width: '500px' }}>
+                        <td style={{ width: '500px' }} ref={tdRef}>
                           <input
                             type="text"
                             className="form-control"
@@ -341,6 +344,10 @@ export default function AddFndUser() {
                               options={filteredUsersOptions}
                               placeholder="Type to select..."
                               isClearable
+                              menuPortalTarget={document.body}
+                              styles={{
+                                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                              }}
                             />
                           </div>
                         </td>
@@ -357,6 +364,10 @@ export default function AddFndUser() {
                               options={filteredCustomerGroupOptions}
                               placeholder="Type to select..."
                               isClearable
+                              menuPortalTarget={document.body}
+                              styles={{
+                                menuPortal: (base) => ({ ...base, zIndex: 999 }),
+                              }}
                             />
                           </div>
                         </td>

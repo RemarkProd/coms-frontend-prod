@@ -212,90 +212,31 @@ export default function UserPage() {
   };
 
   console.log(exceldata);
-  function changeDateFormat(inputDate) {
-    console.log('Original Input:', inputDate);
 
-    // Split the date and time components
-    const parts = inputDate.split(/[\s/]+/);
-
-    if (parts.length !== 3) {
-      console.error("Invalid date format. Expected format: 'DD/MM/YY HH:MM:SS AM/PM'");
-      return null;
-    }
-
-    const [datePart, timePart, meridian] = parts;
-
-    // Parse the date part
-    const dateParts = datePart.split('/');
-    if (dateParts.length !== 3) {
-      console.error("Invalid date part. Expected format: 'DD/MM/YY'");
-      return null;
-    }
-
-    const [day, month, year] = dateParts.map(Number);
-
-    if (isNaN(day) || isNaN(month) || isNaN(year)) {
-      console.error('Invalid day, month, or year value.');
-      return null;
-    }
-
-    // Handle the 12-hour format
-    const timeParts = timePart.split(':');
-    if (timeParts.length !== 3) {
-      console.error("Invalid time part. Expected format: 'HH:MM:SS'");
-      return null;
-    }
-
-    const [hours, minutes, seconds] = timeParts.map(Number);
-
-    if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
-      console.error('Invalid hours, minutes, or seconds value.');
-      return null;
-    }
-
-    let hour = hours;
-
-    if (meridian === 'PM' && hours !== 12) {
-      hour += 12;
-    } else if (meridian === 'AM' && hours === 12) {
-      hour = 0;
-    }
-
-    // Construct a valid date string in the format 'YYYY-MM-DDTHH:MM:SS'
-    const fullYear = year < 100 ? year + 2000 : year; // Adjusting the year if needed
-
-    const date = new Date(fullYear, month - 1, day, hour, minutes, seconds);
-
-    if (isNaN(date.getTime())) {
-      console.error('Failed to create a valid Date object.');
-      return null;
-    }
-
-    const formattedDate = date.toISOString();
-
-    console.log('Formatted Date:', formattedDate);
-    return formattedDate;
+  function convertDateFormat(dateStr) {
+    const [day, month, yearPart] = dateStr.split(/[-\\/]/);
+    const year = yearPart.length === 2 ? `20${yearPart}` : yearPart;
+    const formattedDate = `${year}-${month}-${day}`;
+    const currentTime = new Date();
+    const hours = String(currentTime.getHours()).padStart(2, '0');
+    const minutes = String(currentTime.getMinutes()).padStart(2, '0');
+    const seconds = String(currentTime.getSeconds()).padStart(2, '0');
+    const formattedTime = `${hours}:${minutes}:${seconds}`;
+    return `${formattedDate} ${formattedTime}`;
   }
+
   const formattedData = exceldata.map((item) => {
-    let convertedDate = null;
+    console.log(item.bank_stm_date);
+
     const bankStmDate = item.bank_stm_date;
 
     console.log(typeof bankStmDate);
-
-    if (typeof bankStmDate === 'number') {
-      convertedDate = bankStmDate ? new Date((bankStmDate - (25567 + 2)) * 86400 * 1000) : null;
-      console.log(typeof convertedDate);
-    }
+    console.log(bankStmDate);
 
     return {
       document_number: item.document_number,
-      bank_stm_date:
-        typeof bankStmDate === 'number'
-          ? convertedDate
-            ? convertedDate.toISOString().split('T')[0]
-            : ''
-          : changeDateFormat(bankStmDate),
-      company_code: item.company_code,
+      bank_stm_date: convertDateFormat(item.bank_stm_date),
+      company_code: item.company_code.toString(),
       bank_name: item.bank_name,
       bank_account_num: item.bank_account_num,
       description: item.description,
@@ -440,35 +381,6 @@ export default function UserPage() {
 
       <div>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2} className="actionButton">
-          {/* <Typography variant="h4" gutterBottom>
-            Deposit Collection List
-          </Typography> */}
-          {/* <Button
-            variant="text"
-            startIcon={<Iconify icon="mdi:approve" />}
-            color="primary"
-            onClick={() => approveDeposits(selected)}
-            style={{ backgroundColor: 'lightgray', color: 'black', padding: '9px', marginRight: '20px' }}
-          >
-            Reconcile
-          </Button> */}
-          {/* <Button
-            variant="text"
-            startIcon={<Iconify icon="mdi:approve" />}
-            color="primary"
-            onClick={() => approveDeposits(selected)}
-            style={{ backgroundColor: 'lightgray', color: 'black', padding: '9px' }}
-          >
-            Reject
-          </Button> */}
-          {/* <Button
-            startIcon={<Iconify icon="mdi-chevron-double-down" />}
-            style={{ backgroundColor: 'lightgray', color: 'black', padding: '9px', textAlign: 'right' }}
-            onClick={onDownload}
-          >
-            Export
-          </Button> */}
-
           <CSVLink data={exportData} className="btn btn-success">
             Export Table
           </CSVLink>
