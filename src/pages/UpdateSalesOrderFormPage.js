@@ -409,6 +409,8 @@ export default function Page404() {
           pEmpid: 1,
           pNote: 'A',
           pAuthorizationStatus: soHeaderDetails.authorization_status,
+          pCustGroupId: account.cust_group_id,
+          pTrxType: 'SO',
         };
         const response = await callSoApprovalService(requestBody);
 
@@ -427,6 +429,8 @@ export default function Page404() {
           pApprovalType: 'A',
           pEmpid: 1,
           pNote: 'test',
+          pCustGroupId: account.cust_group_id,
+          pTrxType: 'SO',
         };
         const response = await callReqApprovalFromPanelService(requestBody);
 
@@ -452,6 +456,8 @@ export default function Page404() {
         pApprovalType: 'R',
         pEmpid: 1,
         pNote: 'test',
+        pCustGroupId: account.cust_group_id,
+        pTrxType: 'SO',
       };
       const response = await callReqApprovalFromPanelService(requestBody);
 

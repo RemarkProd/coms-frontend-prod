@@ -393,6 +393,7 @@ export default function UserPage() {
       { id: 'customer', label: 'Customer Name', alignRight: false },
       { id: 'customer_group', label: 'Customer Group', alignRight: false },
       { id: 'amount', label: sentenceCase('amount'), alignRight: true },
+      { id: 'customer_amount', label: sentenceCase('customer_amount'), alignRight: true },
       { id: 'invoice_number', label: 'Invoice Number', alignRight: false },
       { id: 'type', label: 'Deposit Type', alignRight: false },
       { id: 'deposit_bank', label: 'Deposit From Bank', alignRight: false },
@@ -420,6 +421,7 @@ export default function UserPage() {
       { id: 'customer', label: 'Customer Name', alignRight: false },
       { id: 'customer_group', label: 'Customer Group', alignRight: false },
       { id: 'amount', label: sentenceCase('amount'), alignRight: true },
+      { id: 'customer_amount', label: sentenceCase('customer_amount'), alignRight: true },
       { id: 'invoice_number', label: 'Invoice Number', alignRight: false },
       { id: 'type', label: 'Deposit Type', alignRight: false },
       { id: 'deposit_bank', label: 'Deposit From Bank', alignRight: false },
@@ -669,6 +671,7 @@ export default function UserPage() {
     'Customer Name': item.customer_name,
     'Customer Group': item.customer_group,
     Amount: item.amount,
+    CustomerAmount: item.customer_amount,
     'Invoice Number': item.invoice_number,
     'Deposit Type': item.deposit_type_name,
     'Deposit From Bank': item.depositor_bank,
@@ -1067,6 +1070,7 @@ export default function UserPage() {
                       creation_date,
                       doc_sequence_value,
                       pay_from_customer,
+                      customer_amount,
                     } = row;
 
                     const selectedUser = selected.indexOf(cash_receipt_id) !== -1;
@@ -1119,6 +1123,9 @@ export default function UserPage() {
                         </TableCell>
                         <TableCell align="right" className="viewTable">
                           {getFormattedPrice(amount)}
+                        </TableCell>
+                        <TableCell align="right" className="viewTable">
+                          {getFormattedPrice(customer_amount)}
                         </TableCell>
                         <TableCell align="left" className="viewTable">
                           {invoice_number}

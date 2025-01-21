@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-restricted-globals */
 import { useEffect, useState } from 'react';
+import { CSVLink } from 'react-csv';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
 // @mui
@@ -109,6 +110,22 @@ export default function Page404() {
   }, []);
   console.log(lineDetails);
 
+  const [mergedDetails, setMergedDetails] = useState([]);
+
+  useEffect(() => {
+    if (headerDetails.order_number && lineDetails.length > 0) {
+      const merged = lineDetails.map((line) => ({
+        order_number: headerDetails.order_number,
+        ordered_item: line.ordered_item,
+        ordered_quantity: line.ordered_quantity,
+        inventory_item_code: line.inventory_item_code,
+      }));
+      setMergedDetails(merged);
+      console.log('Merged Details:', merged);
+    }
+  }, [headerDetails, lineDetails]);
+  console.log(mergedDetails);
+
   const [approvalSequenceDetails, setApprovalSequence] = useState([]);
   useEffect(() => {
     async function fetchData() {
@@ -191,6 +208,13 @@ export default function Page404() {
     navigate(`/dashboard/updateSalesOrderForm/${header_id}`, { replace: true });
   };
 
+  const exportData = mergedDetails.map((item, index) => ({
+    'Serial Number': index + 1,
+    'Item Name': item.ordered_item,
+    'Item Code': item.inventory_item_code,
+    'Item Quantity': item.ordered_quantity,
+  }));
+
   return (
     <>
       <Helmet>
@@ -255,6 +279,9 @@ export default function Page404() {
           <Typography variant="h5" gutterBottom>
             Order Headers
           </Typography>
+          <CSVLink data={exportData} className="btn btn-success">
+            Export Table
+          </CSVLink>
         </Stack>
         <div className="row g-3 align-items-center" style={{ boxShadow: '0 4px 2px -2px rgba(0, 0, 0, 0.2)' }}>
           <div className="col-auto" style={{ width: '33%' }}>

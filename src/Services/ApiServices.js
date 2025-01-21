@@ -144,8 +144,6 @@ export const getAccountDetails = async (emailAddress) => {
 };
 
 export const getUserProfileDetails = async (loginToken) => {
-  console.log(loginToken);
-
   try {
     return await axios.get(`${usersUrl}profile/`, {
       headers: {
@@ -1488,7 +1486,7 @@ export const getShopsListService = async (loginToken) => {
 
 export const getItemsListService = async (loginToken) => {
   try {
-    return await axios.get(`${usersUrl}get-item-master/2`, {
+    return await axios.get(`${usersUrl}get-item-master/51`, {
       headers: {
         Authorization: `Bearer ${loginToken}`,
       },
@@ -1499,6 +1497,7 @@ export const getItemsListService = async (loginToken) => {
     return err.message;
   }
 };
+
 export const getDivisionListsService = async (loginToken) => {
   try {
     return await axios.get(`${usersUrl}get-bd-area-lists/division`, {
@@ -1708,6 +1707,26 @@ export const getRegionService = async (loginToken) => {
   }
 };
 
+export const getBrandingAssetsReportService = async (groupId) => {
+  try {
+    return await axios.get(`${usersUrl}branding-assets/byGroup/${groupId}`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getItemsListByChannelService = async (groupId) => {
+  try {
+    return await axios.get(`${usersUrl}get-item-master/${groupId}`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
 export const approveBankDepositService = async (loginToken, bodyInfo) => {
   try {
     return await axios.put(`${usersUrl}bank-deposit/approve`, bodyInfo, {
@@ -1752,7 +1771,7 @@ export const rejectBankDepositService = async (loginToken, bodyInfo) => {
 
 export const dowloadBankDepositReceiptService = async (loginToken, bodyInfo) => {
   try {
-    return await axios.post(`${usersUrl}branding-assets/image/download`, bodyInfo, {
+    return await axios.post(`${usersUrl}bank-deposit/download`, bodyInfo, {
       headers: {
         Authorization: `Bearer ${loginToken}`,
       },
@@ -2406,6 +2425,20 @@ export const getBrandingAssetsItemImagesService = async (loginToken, itemId) => 
   }
 };
 
+export const getBrandingAssetsShopPerItemImages = async (loginToken, bodyInfo) => {
+  try {
+    return await axios.post(`${usersUrl}branding-assets/viewItemsPerShop`, bodyInfo, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
 export const getBrandingAssetsViewData = async (loginToken) => {
   try {
     return await axios.get(`${usersUrl}branding-assets`, {
@@ -2413,6 +2446,65 @@ export const getBrandingAssetsViewData = async (loginToken) => {
         Authorization: `Bearer ${loginToken}`,
       },
     });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getBrandingAssetsAllViewData = async (loginToken) => {
+  try {
+    return await axios.get(`${usersUrl}branding-assets/all`, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getBrandingAssetById = async (id) => {
+  try {
+    return await axios.get(`${usersUrl}branding-assets/get/${id}`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getBrandingAssetByParentId = async (id) => {
+  try {
+    return await axios.get(`${usersUrl}branding-assets/getParent/${id}`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const dowloadBrandingAssetService = async (loginToken, bodyInfo) => {
+  try {
+    return await axios.post(`${usersUrl}branding-assets/image/download`, bodyInfo, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+      responseType: 'arraybuffer',
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const auditBrandingAssetService = async (bodyInfo) => {
+  try {
+    return await axios.post(`${usersUrl}branding-assets/audit`, bodyInfo);
   } catch (err) {
     console.log(err.message);
 
@@ -2612,5 +2704,429 @@ export const getCustomerTotalList = async () => {
     console.log(err.message);
 
     return err.message;
+  }
+};
+
+export const getAllSalesTargets = async () => {
+  try {
+    return await axios.get(`${usersUrl}salesTarget/getAll`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const postSalesTargetExcelDataService = async (bodyInfo) => {
+  console.log(bodyInfo);
+  try {
+    return await axios.post(`${usersUrl}salesTarget/add`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getAllIncentiveFormulaService = async () => {
+  try {
+    return await axios.get(`${usersUrl}inventiveFormula/getAll`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const postIncentiveFormulaService = async (bodyInfo) => {
+  console.log(bodyInfo);
+  try {
+    return await axios.post(`${usersUrl}inventiveFormula/addFormula`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getAllRecipientsService = async () => {
+  try {
+    return await axios.get(`${usersUrl}incentiveRecipientGroups/getAll`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const postIncentiveRecipientsService = async (bodyInfo) => {
+  console.log(bodyInfo);
+  try {
+    return await axios.post(`${usersUrl}incentiveRecipientGroups/add`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getAllSalesSKUTargets = async () => {
+  try {
+    return await axios.get(`${usersUrl}salesTargetsSkuAll/getAll`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const postSKUService = async (bodyInfo) => {
+  console.log(bodyInfo);
+  try {
+    return await axios.post(`${usersUrl}salesTargetsSkuAll/add`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getSoSalesTargetIncentiveService = async () => {
+  try {
+    return await axios.get(`${usersUrl}salesTargetIncentiveView`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getAllSalesDetails = async () => {
+  try {
+    return await axios.get(`${usersUrl}salesDetailsAll/getAll`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const postSalesDetailsService = async (bodyInfo) => {
+  console.log(bodyInfo);
+  try {
+    return await axios.post(`${usersUrl}salesDetailsAll/add/all`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getBASalesFilterByDateService = async (loginToken, requestBody) => {
+  try {
+    return await axios.post(`${usersUrl}salestargetallfilter/view/filterByDate`, requestBody, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getBASalesFilterByFromDateService = async (loginToken, requestBody) => {
+  try {
+    return await axios.post(`${usersUrl}salestargetallfilter/view/filterByFromDate`, requestBody, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getBASalesFilterByToDateService = async (loginToken, requestBody) => {
+  try {
+    return await axios.post(`${usersUrl}salestargetallfilter/view/filterByToDate`, requestBody, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getSalesDetailsFilterByDateService = async (loginToken, requestBody) => {
+  try {
+    return await axios.post(`${usersUrl}salesdetailsallfilter/view/filterByDate`, requestBody, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getSalesDetailsFilterByFromDateService = async (loginToken, requestBody) => {
+  try {
+    return await axios.post(`${usersUrl}salesdetailsallfilter/view/filterByFromDate`, requestBody, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getSalesDetailsFilterByToDateService = async (loginToken, requestBody) => {
+  try {
+    return await axios.post(`${usersUrl}salesdetailsallfilter/view/filterByToDate`, requestBody, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getSalesTargetSKUFilterByDateService = async (loginToken, requestBody) => {
+  try {
+    return await axios.post(`${usersUrl}salestargetsskullfilter/view/filterByDate`, requestBody, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getSalesTargetSKUFilterByFromDateService = async (loginToken, requestBody) => {
+  try {
+    return await axios.post(`${usersUrl}salestargetsskullfilter/view/filterByFromDate`, requestBody, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getSalesTargetSKUFilterByToDateService = async (loginToken, requestBody) => {
+  try {
+    return await axios.post(`${usersUrl}salestargetsskullfilter/view/filterByToDate`, requestBody, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`,
+      },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const postIncentiveRecipientGroupsService = async (bodyInfo) => {
+  console.log(bodyInfo);
+  try {
+    return await axios.post(`${usersUrl}incentiveRecipientGroups/add`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getAllIncentiveTypesService = async () => {
+  try {
+    return await axios.get(`${usersUrl}incentiveTypes/getAll`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getAllIncentiveConditionsService = async () => {
+  try {
+    return await axios.get(`${usersUrl}incentiveConditions/getAll`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const postIncentiveConditionService = async (bodyInfo) => {
+  console.log(bodyInfo);
+  try {
+    return await axios.post(`${usersUrl}incentiveConditions/add`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const postIncentiveTypesService = async (bodyInfo) => {
+  console.log(bodyInfo);
+  try {
+    return await axios.post(`${usersUrl}incentiveTypes/add`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getAllIncentiveDistributionService = async () => {
+  try {
+    return await axios.get(`${usersUrl}incentivedistributionall/getAll`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const postIncentiveDistributionService = async (bodyInfo) => {
+  console.log(bodyInfo);
+  try {
+    return await axios.post(`${usersUrl}incentivedistributionall/add`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getAllIncentiveAchievementSlabService = async () => {
+  try {
+    return await axios.get(`${usersUrl}incentiveAchievementSlabAll/getAll`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const postIncentiveAchievementSlabService = async (bodyInfo) => {
+  console.log(bodyInfo);
+  try {
+    return await axios.post(`${usersUrl}incentiveAchievementSlabAll/add`, bodyInfo);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+// BA testing
+export const getSalesDetailsBATokenService = async () => {
+  try {
+    return await axios.post(`${usersUrl}baSalesAllData/token`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getBASalesDetailsTokenDateService = async (loginToken) => {
+  try {
+    // Ensure usersUrl ends with a trailing slash to avoid concatenation issues
+    const response = await axios.get(`${usersUrl}baSalesAllData`, {
+      params: { loginToken }, // Query parameters
+    });
+    console.log(response);
+
+    return response; // Return the data portion of the response
+  } catch (err) {
+    console.error('Error in getBASalesDetailsTokenDateService:', err.message);
+    throw err; // Re-throw the error for the caller to handle
+  }
+};
+
+// pos integration
+export const getSalesDetailsFromPosService = async (date) => {
+  try {
+    return await axios.get(`${usersUrl}salesDetailsAll/pos/${date}`);
+  } catch (err) {
+    console.log(err.message);
+
+    return err;
+  }
+};
+
+export const addSalesDetailsFromPosService = async (requestBody) => {
+  try {
+    return await axios.post(`${usersUrl}salesDetailsAll/pos/add/all`, requestBody);
+  } catch (err) {
+    console.log(err.message);
+
+    return err.message;
+  }
+};
+
+export const getSalesCountFromPosService = async (date) => {
+  try {
+    const response = await axios.get(`http://182.160.114.100:9011/demo/api/app/GetSaleExportData/1/1/${date}`, {
+      headers: { Authorization: 'Mahatab:/gMaJikNGIw9vf6tO46emg==' },
+    });
+
+    return response.data.COUNT;
+  } catch (err) {
+    console.log(err.message);
+
+    return err;
+  }
+};
+
+export const getSalesDetailsFromPosMediasoftService = async (date, pageNo) => {
+  try {
+    return await axios.get(`http://182.160.114.100:9011/demo/api/app/GetSaleExportData/${pageNo}/500/${date}`, {
+      headers: { Authorization: 'Mahatab:/gMaJikNGIw9vf6tO46emg==' },
+    });
+  } catch (err) {
+    console.log(err.message);
+
+    return err;
+  }
+};
+
+export const addReplaceAssetsService = async (loginToken, bodyInfo) => {
+  try {
+    const response = await axios.post(`${usersUrl}branding-assets/replace`, bodyInfo, {
+      headers: {
+        Authorization: `Bearer ${loginToken}`, // Authorization token
+      },
+    });
+
+    return response; // return response to handle in the component
+  } catch (err) {
+    console.error('Error:', err.message);
+    return { error: err.message }; // return error in case of failure
   }
 };

@@ -331,6 +331,7 @@ export default function UserPage() {
     { id: 'customer', label: 'Customer Name', alignRight: false },
     { id: 'customer_group', label: 'Customer Group', alignRight: false },
     { id: 'amount', label: sentenceCase('amount'), alignRight: true },
+    { id: 'customer_amount', label: sentenceCase('customer_amount'), alignRight: true },
     { id: 'invoice_number', label: 'Invoice Number', alignRight: false },
     { id: 'type', label: 'Deposit Type', alignRight: false },
     { id: 'deposit_bank', label: 'Deposit From Bank', alignRight: false },
@@ -571,6 +572,7 @@ export default function UserPage() {
     CustomerName: item.customer_name,
     CustomerGroup: item.customer_group,
     Amount: item.amount,
+    CustomerAmount: item.customer_amount,
     InvoiceNumber: item.invoice_number,
     DepositType: item.deposit_type_name,
     DepositFromBank: item.depositor_bank,
@@ -699,6 +701,7 @@ export default function UserPage() {
                       customer_group,
                       creation_date,
                       doc_sequence_value,
+                      customer_amount,
                     } = row;
 
                     const selectedUser = selected.indexOf(cash_receipt_id) !== -1;
@@ -756,6 +759,9 @@ export default function UserPage() {
                         </TableCell>
                         <TableCell align="right" style={{ whiteSpace: 'nowrap' }}>
                           {getFormattedPrice(amount)}
+                        </TableCell>
+                        <TableCell align="right" style={{ whiteSpace: 'nowrap' }}>
+                          {getFormattedPrice(customer_amount)}
                         </TableCell>
                         <TableCell align="left" style={{ whiteSpace: 'nowrap' }}>
                           {invoice_number}

@@ -8,14 +8,12 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import { filter } from 'lodash';
 import { useEffect, useRef, useState } from 'react';
-import { CSVLink } from 'react-csv';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import Select from 'react-select';
 // @mui
 import {
-  Box,
   Button,
   Card,
   CircularProgress,
@@ -25,7 +23,6 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TablePagination,
   TableRow,
   Typography,
 } from '@mui/material';
@@ -34,9 +31,12 @@ import { useUser } from '../context/UserContext';
 import Scrollbar from '../components/scrollbar';
 // sections
 import {
+  addReplaceAssetsService,
+  dowloadBrandingAssetService,
+  getBrandingAssetByParentId,
   getBrandingAssetSumReport,
+  getBrandingAssetsAllViewData,
   getBrandingAssetsReportService,
-  getBrandingAssetsViewData,
   getItemsListByChannelService,
   getShopsListService,
   getUserProfileDetails
@@ -136,16 +136,6 @@ export default function UserPage() {
   const { user } = useUser();
   console.log(user);
 
-  const [openFilterDialog, setOpenFilterDialog] = useState(false);
-
-  const handleOpenFilterDialog = () => {
-    setOpenFilterDialog(true);
-  };
-
-  const handleCloseFilterDialog = () => {
-    setOpenFilterDialog(false);
-  };
-
   const [account, setAccount] = useState({});
   useEffect(() => {
     async function fetchData() {
@@ -170,11 +160,9 @@ export default function UserPage() {
     async function fetchData() {
       try {
         if (account) {
-          console.log(account.cust_group_id);
           const response = await getBrandingAssetsReportService(account.cust_group_id);
 
           if (response.status === 200) {
-            // const filteredList = response.data.filter((item) => item.status === 'RECONCILED');
             setUserList(response.data);
             const customerGroupList = [...new Set(response.data.map((obj) => obj.shop_name))];
             const customerList = [...new Set(response.data.map((obj) => obj.item_name))];
@@ -250,32 +238,109 @@ export default function UserPage() {
   const handleClose = () => {
     setOpen(false);
   };
+  const handleCloseDialog = () => {
+    setShowChild(false);
+  };
 
   const [imageSrc, setImageSrc] = useState(null);
+  const viewAttachment = async (value) => {
+    console.log(value);
+
+    try {
+      const filename = value;
+      const requestBody = {
+        fileName: filename,
+      };
+      const response = await dowloadBrandingAssetService(user, requestBody);
+
+      if (response.status === 200) {
+        const base64String = btoa(
+          new Uint8Array(response.data).reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
+
+        const dataURL = `data:image/jpeg;base64,${base64String}`;
+        setImageSrc(dataURL);
+      } else {
+        console.log('Image download failed. Server returned status:', response.status);
+      }
+    } catch (error) {
+      console.error('Error during image download:', error);
+    } finally {
+      setOpen(true); // This will be executed regardless of success or failure
+    }
+  };
+
+  const viewReplace = async (value) => {
+    console.log(value);
+    if (value === '') {
+      alert('No image for display');
+      return;
+    }
+
+    try {
+      const filename = value;
+      const requestBody = {
+        fileName: filename,
+      };
+      const response = await dowloadBrandingAssetService(user, requestBody);
+
+      if (response.status === 200) {
+        const base64String = btoa(
+          new Uint8Array(response.data).reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
+
+        const dataURL = `data:image/jpeg;base64,${base64String}`;
+        setImageSrc(dataURL);
+      } else {
+        console.log('Image download failed. Server returned status:', response.status);
+      }
+    } catch (error) {
+      console.error('Error during image download:', error);
+    }
+  };
+
+  const addReplaceItem = async (value) => {
+    try {
+      const requestBody = {
+        parentDistributionId: value,
+      };
+      const response = await addReplaceAssetsService(user, requestBody);
+
+      if (response.status === 200) {
+        alert('Successfully Call procedure');
+      } else {
+        alert('Process failed! Please try again');
+      }
+    } catch (error) {
+      alert('Process failed! Please try again');
+      console.error('Error during image download:', error);
+    }
+  };
 
   const TABLE_HEAD = [
-    { id: 'authorization_status', label: 'Authorization Status', alignRight: false },
-    { id: 'review_status', label: 'Review Status', alignRight: false },
+    { id: 'attachment', label: 'Attachment', alignRight: false },
+    { id: 'replaced', label: 'Replaced Item', alignRight: false },
     { id: 'item_name', label: 'Item Name', alignRight: false },
     { id: 'item_category', label: 'Item Category', alignRight: false },
     { id: 'inventory_item_id', label: 'Inventory Item Id', alignRight: false },
     { id: 'brand_code', label: 'Brand Code', alignRight: false },
-    { id: 'shop_name', label: 'Shop Name', alignRight: false },
-    { id: 'layout', label: 'Layout', alignRight: false },
-    { id: 'address', label: 'Address', alignRight: false },
-    { id: 'area_name', label: 'Area_Name', alignRight: false },
     { id: 'asset_cost', label: 'Asset Cost', alignRight: false },
-    { id: 'beat_name', label: 'Beat Name', alignRight: false },
-    { id: 'creation_date', label: 'Creation Date', alignRight: false },
-    { id: 'cust_group_name', label: 'Cust Group Name', alignRight: false },
-    { id: 'periodic_expense', label: 'Periodic Expense', alignRight: false },
-    { id: 'region_name', label: 'Region Name', alignRight: false },
-    { id: 'remarks', label: 'Remarks', alignRight: false },
-    { id: 'renew_date', label: 'Renew Date', alignRight: false },
+    { id: 'review_status', label: 'Review Status', alignRight: false },
+    { id: 'layout', label: 'Layout', alignRight: false },
+    { id: 'shop_name', label: 'Shop Name', alignRight: false },
     { id: 'shop_code', label: 'Shop Code', alignRight: false },
-    { id: 'supplier_name', label: 'Supplier Name', alignRight: false },
+    { id: 'address', label: 'Shop Address', alignRight: false },
+    { id: 'region_name', label: 'Region Name', alignRight: false },
+    { id: 'area_name', label: 'Area_Name', alignRight: false },
     { id: 'territory_name', label: 'Territory Name', alignRight: false },
     { id: 'town_name', label: 'Town Name', alignRight: false },
+    { id: 'beat_name', label: 'Beat Name', alignRight: false },
+    { id: 'creation_date', label: 'Creation Date', alignRight: false },
+    { id: 'renew_date', label: 'Renew Date', alignRight: false },
+    { id: 'periodic_expense', label: 'Periodic Expense', alignRight: false },
+    { id: 'supplier_name', label: 'Supplier Name', alignRight: false },
+    { id: 'cust_group_name', label: 'Cust Group Name', alignRight: false },
+    { id: 'remarks', label: 'Remarks', alignRight: false },
   ];
 
   const handleRequestSort = (event, property) => {
@@ -291,15 +356,6 @@ export default function UserPage() {
       return;
     }
     setSelected([]);
-  };
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setPage(0);
-    setRowsPerPage(parseInt(event.target.value, 10));
   };
 
   const [filterInfo, setFilterInfo] = useState({
@@ -322,6 +378,7 @@ export default function UserPage() {
   };
 
   const reviewStatusOptions = [
+    { value: 'To Be Replaced', label: 'To Be Replaced' },
     { value: 'New', label: 'New' },
     { value: 'Excellent', label: 'Excellent' },
     { value: 'Good', label: 'Good' },
@@ -360,26 +417,51 @@ export default function UserPage() {
     setInputValue(inputValue);
   };
 
-  const handleClearDate = async () => {
-    // Clear the shop filter
-    setFilterInfo({
-      shop: '',
-      status: '',
-      itemName: '',
-    });
+  const [child, setChild] = useState([]);
+  const [showChild, setShowChild] = useState(false);
+  const viewChild = async (data) => {
+    try {
+      setShowChild(true);
+      const response = await getBrandingAssetByParentId(data);
+      if (response.status === 200) {
+        if (response.data.length === 0) {
+          alert('Data is not available!');
+          setShowChild(false);
+          return;
+        }
 
-    // Reset the data in the table to show all records
-    const response = await getBrandingAssetsViewData(user);
-    if (response) setUserList(response.data);
-
-    // setOpenFilterDialog(false); // Close the dialog after clearing the filter
+        setChild(response.data);
+        await viewReplace(response.data[0].uploaded_filename || '');
+      } else {
+        alert('Process failed! Try again');
+      }
+    } catch (error) {
+      alert('Process failed! Try again');
+      console.log(error);
+    }
   };
 
-  const handleDateFilter = async () => {
+  const handleClearFilter = async () => {
+    try {
+      const response = await getBrandingAssetsAllViewData(user);
+      setUserList(response.data);
+
+      setFilterInfo({
+        shop: '',
+        status: '',
+        itemName: '',
+      });
+    } catch (error) {
+      alert('Process failed! Try again');
+      console.error('Error fetching account details:', error);
+    }
+  };
+
+  const handleFilter = async () => {
     try {
       setUserList([]);
 
-      const response = await getBrandingAssetsViewData(user);
+      const response = await getBrandingAssetsAllViewData(user);
       if (response) {
         let filteredData = response.data;
 
@@ -395,50 +477,16 @@ export default function UserPage() {
           filteredData = filteredData.filter((item) => item.review_status === filterInfo.status);
         }
 
-        if (filterInfo.audit) {
-          filteredData = filteredData.filter((item) => item.authorization_status === filterInfo.audit);
-        }
-
         setUserList(filteredData);
       }
     } catch (error) {
       console.error('Error fetching account details:', error);
-    } finally {
-      setOpenFilterDialog(false);
     }
   };
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
   const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
-  const isNotFound = !filteredUsers.length && !!filterName;
-
-  const exportData = filteredUsers.map((item) => ({
-    'Authorization Status': item.authorization_status,
-    'Review Status': item.review_status,
-    'Item Name': item.item_name,
-    'Item Category': item.item_category,
-    'Inventory Item Id': item.inventory_item_id,
-    'Brand Code': item.brand_code,
-    'Shop Name': item.shop_name,
-    Address: item.address,
-    'Area Name': item.area_name,
-    'Asset Cost': item.asset_cost,
-    'Beat Name': item.beat_name,
-    'Creation Date': item.creation_date,
-    'Cust Group Name': item.cust_group_name,
-    'Periodic Expense': item.periodic_expense,
-    'Region Name': item.region_name,
-    Remarks: item.remarks,
-    'Renew Date': item.renew_date,
-    'Shop Code': item.shop_code,
-    'Supplier Name': item.supplier_name,
-    'Territory Name': item.territory_name,
-    'Town Name': item.town_name,
-  }));
-
-  // const closeDialog = () => {
-  //   setOpenEdit(false);
-  // };
+  const isNotFound = !USERLIST.length;
 
   return (
     <>
@@ -447,33 +495,69 @@ export default function UserPage() {
       </Helmet>
 
       <div style={{ margin: '0 22px' }}>
-        <Box position="relative" width="100%" height="100px">
-          {' '}
-          <Stack
-            direction="row"
-            alignItems="center"
-            spacing={2}
-            sx={{
-              position: 'absolute',
-              top: '50%',
-              right: 0,
-              transform: 'translateY(-50%)',
-            }}
-          >
-            <CSVLink data={exportData} className="btn btn-success" style={{ width: '120px' }}>
-              Export Table
-            </CSVLink>
-            <Button
-              onClick={handleOpenFilterDialog}
-              variant="contained"
-              sx={{
-                margin: 1,
-              }}
-            >
-              Filter Criteria
+        <Stack spacing={1.5} direction="column" mb={3}>
+          <div className="col-auto" style={{ marginRight: '20px', display: 'flex' }}>
+            <div className="col-auto" style={{ display: 'flex', marginRight: '10px', width: 'auto' }}>
+              <span style={{ marginRight: '5px', whiteSpace: 'nowrap' }}>Shop Name</span>
+              <div style={{ width: '250px' }}>
+                <Select
+                  value={filterInfo.shop ? { value: filterInfo.shop, label: filterInfo.shop } : null}
+                  onChange={handleShopNameChange}
+                  onInputChange={handleShopNameInputChange}
+                  options={filteredShopsOptions}
+                  placeholder="Type to select..."
+                  isClearable
+                />
+              </div>
+            </div>
+            <div className="col-auto" style={{ display: 'flex', marginRight: '10px', width: 'auto' }}>
+              <span style={{ marginRight: '5px', whiteSpace: 'nowrap' }}>Item Name</span>
+              <div style={{ width: '250px' }}>
+                <Select
+                  value={filterInfo.itemName ? { value: filterInfo.itemName, label: filterInfo.itemName } : null}
+                  onChange={handleItemNameChange}
+                  onInputChange={handleItemNameInputChange}
+                  options={filteredItemOptions}
+                  placeholder="Type to select..."
+                  isClearable
+                />
+              </div>
+            </div>
+            <div className="col-auto" style={{ display: 'flex', marginRight: '10px', width: 'auto' }}>
+              <span style={{ marginRight: '5px', whiteSpace: 'nowrap' }}>Review Status</span>
+              <div style={{ width: '240px' }}>
+                <Select
+                  value={filterInfo.status ? { value: filterInfo.status, label: filterInfo.status } : null}
+                  onChange={handleReviewStatusChange}
+                  options={reviewStatusOptions}
+                  placeholder="Click to select..."
+                  isClearable
+                  isSearchable={false}
+                />
+              </div>
+            </div>
+            <div className="col-auto" style={{ display: 'none', marginRight: '10px', width: 'auto' }}>
+              <span style={{ marginRight: '5px', whiteSpace: 'nowrap' }}>Audit Status</span>
+              <div style={{ width: '180px' }}>
+                <Select
+                  value={filterInfo.audit ? { value: filterInfo.audit, label: filterInfo.audit } : null}
+                  onChange={handleAuditStatusChange}
+                  options={auditStatusOptions}
+                  placeholder="Click to select..."
+                  isClearable
+                  isSearchable={false}
+                />
+              </div>
+            </div>
+            <Button variant="contained" onClick={handleFilter} style={{ margin: '0 1rem' }}>
+              Filter
             </Button>
-          </Stack>
-        </Box>
+            <Button variant="contained" onClick={handleClearFilter}>
+              Clear
+            </Button>
+          </div>
+        </Stack>
+        <hr />
 
         <Card>
           <Scrollbar>
@@ -483,14 +567,14 @@ export default function UserPage() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={filteredUsers.length}
+                  rowCount={USERLIST.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                   enableReadonly
                 />
                 <TableBody>
-                  {USERLIST.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                  {USERLIST.map((row) => {
                     const {
                       shop_id,
                       address,
@@ -516,40 +600,57 @@ export default function UserPage() {
                       town_name,
                       layout_name,
                       authorization_status,
+                      uploaded_filename,
+                      distribution_id,
+                      parent_distribution_id,
                     } = row;
 
                     const rowValues = [
-                      authorization_status,
-                      review_status,
+                      //   authorization_status,
                       item_name,
                       item_category,
                       inventory_item_id,
                       brand_code,
-                      shop_name,
-                      layout_name,
-                      address,
-                      area_name,
                       asset_cost,
-                      beat_name,
-                      creation_date,
-                      cust_group_name,
-                      periodic_expense,
-                      region_name,
-                      remarks,
-                      renew_date,
+                      review_status,
+                      layout_name,
+                      shop_name,
                       shop_code,
-                      supplier_name,
+                      address,
+                      region_name,
+                      area_name,
                       territory_name,
                       town_name,
+                      beat_name,
+                      creation_date,
+                      renew_date,
+                      periodic_expense,
+                      supplier_name,
+                      cust_group_name,
+                      remarks,
                     ];
 
-                    const selectedUser = selected.indexOf(shop_id) !== -1;
+                    const selectedUser = selected.indexOf(distribution_id) !== -1;
 
                     return (
-                      <TableRow hover key={shop_id} tabIndex={-1} role="checkbox" selected={selectedUser}>
+                      <TableRow hover key={distribution_id} tabIndex={-1} role="checkbox" selected={selectedUser}>
+                        <TableCell style={{ whiteSpace: 'nowrap', margin: '10px', padding: '10px' }}>
+                          <button style={{ width: '100%' }} onClick={(e) => viewAttachment(uploaded_filename)}>
+                            View
+                          </button>
+                        </TableCell>
+                        <TableCell style={{ whiteSpace: 'nowrap', margin: '10px', padding: '10px' }}>
+                          <button style={{ width: '100%' }} onClick={(e) => viewChild(distribution_id)}>
+                            Show
+                          </button>
+                        </TableCell>
                         {rowValues.map((value, index) => (
-                          <TableCell key={index} align="left" style={{ whiteSpace: 'nowrap' }}>
-                            {index === 11 || index === 16 ? getFormattedDateWithTime(value) : value}
+                          <TableCell
+                            key={index}
+                            align="left"
+                            style={{ whiteSpace: 'nowrap', margin: '10px', padding: '10px' }}
+                          >
+                            {index === 15 || index === 16 ? getFormattedDateWithTime(value) : value}
                           </TableCell>
                         ))}
                       </TableRow>
@@ -561,7 +662,6 @@ export default function UserPage() {
                     </TableRow>
                   )}
                 </TableBody>
-
                 {isNotFound && (
                   <TableBody>
                     <TableRow>
@@ -585,7 +685,6 @@ export default function UserPage() {
                     </TableRow>
                   </TableBody>
                 )}
-
                 <Dialog open={open} onClose={handleClose}>
                   <Stack />
                   <DialogContent>
@@ -599,99 +698,105 @@ export default function UserPage() {
                         />
                       ) : (
                         <CircularProgress />
-                        // <p>No photo available</p>
                       )}
                     </Stack>
                   </DialogContent>
                 </Dialog>
 
-                <Dialog
-                  fullScreen
-                  open={openFilterDialog}
-                  onClose={handleCloseFilterDialog}
-                  sx={{ '& .MuiDialog-paper': { maxWidth: '100%', height: '250px' } }}
-                >
-                  <DialogContent>
-                    <Stack spacing={1.5} direction="column">
-                      <div className="col-auto" style={{ marginRight: '20px', display: 'flex' }}>
-                        <div className="col-auto" style={{ display: 'flex', marginRight: '10px', width: 'auto' }}>
-                          <span style={{ marginRight: '5px', whiteSpace: 'nowrap' }}>Shop Name</span>
-                          <div style={{ width: '180px' }}>
-                            <Select
-                              value={filterInfo.shop ? { value: filterInfo.shop, label: filterInfo.shop } : null}
-                              // value={selectedOption}
-                              // onChange={onFilterDetails}
-                              onChange={handleShopNameChange}
-                              onInputChange={handleShopNameInputChange}
-                              options={filteredShopsOptions}
-                              placeholder="Type to select..."
-                              isClearable
-                            />
-                          </div>
-                        </div>
-                        <div className="col-auto" style={{ display: 'flex', marginRight: '10px', width: 'auto' }}>
-                          <span style={{ marginRight: '5px', whiteSpace: 'nowrap' }}>Item Name</span>
-                          <div style={{ width: '180px' }}>
-                            <Select
-                              value={
-                                filterInfo.itemName ? { value: filterInfo.itemName, label: filterInfo.itemName } : null
-                              }
-                              onChange={handleItemNameChange}
-                              onInputChange={handleItemNameInputChange}
-                              options={filteredItemOptions}
-                              placeholder="Type to select..."
-                              isClearable
-                            />
-                          </div>
-                        </div>
-                        <div className="col-auto" style={{ display: 'flex', marginRight: '10px', width: 'auto' }}>
-                          <span style={{ marginRight: '5px', whiteSpace: 'nowrap' }}>Review Status</span>
-                          <div style={{ width: '180px' }}>
-                            <Select
-                              value={filterInfo.status ? { value: filterInfo.status, label: filterInfo.status } : null}
-                              onChange={handleReviewStatusChange}
-                              options={reviewStatusOptions}
-                              placeholder="Click to select..."
-                              isClearable
-                              isSearchable={false}
-                            />
-                          </div>
-                        </div>
-                        <div className="col-auto" style={{ display: 'flex', marginRight: '10px', width: 'auto' }}>
-                          <span style={{ marginRight: '5px', whiteSpace: 'nowrap' }}>Audit Status</span>
-                          <div style={{ width: '180px' }}>
-                            <Select
-                              value={filterInfo.audit ? { value: filterInfo.audit, label: filterInfo.audit } : null}
-                              onChange={handleAuditStatusChange}
-                              options={auditStatusOptions}
-                              placeholder="Click to select..."
-                              isClearable
-                              isSearchable={false}
-                            />
-                          </div>
-                        </div>
-                      </div>
+                <Dialog open={showChild} fullScreen>
+                  <DialogContent style={{ display: 'flex', flexDirection: 'row' }}>
+                    {/* Left Side: Item Information */}
+                    <Stack style={{ width: '50%' }}>
+                      <table>
+                        <tr>
+                          <td>Item Name:</td>
+                          <td>{child[0]?.item_name ?? 'null'}</td>
+                        </tr>
+                        <tr>
+                          <td>Item Category:</td>
+                          <td>{child[0]?.item_category ?? 'null'}</td>
+                        </tr>
+                        <tr>
+                          <td>Inventory Item ID:</td>
+                          <td>{child[0]?.inventory_item_id ?? 'null'}</td>
+                        </tr>
+                        <tr>
+                          <td>Brand Code:</td>
+                          <td>{child[0]?.brand_code ?? 'null'}</td>
+                        </tr>
+                        <tr>
+                          <td>Asset Cost:</td>
+                          <td>{child[0]?.asset_cost ?? 'null'}</td>
+                        </tr>
+                        <tr>
+                          <td>Review Status:</td>
+                          <td>{child[0]?.review_status ?? 'null'}</td>
+                        </tr>
+                        <tr>
+                          <td>Layout Name:</td>
+                          <td>{child[0]?.layout_name ?? 'null'}</td>
+                        </tr>
+                        <tr>
+                          <td>Shop Name:</td>
+                          <td>{child[0]?.shop_name ?? 'null'}</td>
+                        </tr>
+                        <tr>
+                          <td>Shop Code:</td>
+                          <td>{child[0]?.shop_code ?? 'null'}</td>
+                        </tr>
+                        <tr>
+                          <td>Address:</td>
+                          <td>{child[0]?.address ?? 'null'}</td>
+                        </tr>
+                        <tr>
+                          <td>Region Name:</td>
+                          <td>{child[0]?.region_name ?? 'null'}</td>
+                        </tr>
+                        <tr>
+                          <td>Area Name:</td>
+                          <td>{child[0]?.area_name ?? 'null'}</td>
+                        </tr>
+                      </table>
+                    </Stack>
+
+                    {/* Right Side: Image */}
+                    <Stack spacing={1.5} direction="row" style={{ width: '50%', paddingLeft: '20px' }}>
+                      {imageSrc ? (
+                        <img
+                          src={imageSrc}
+                          alt="Preview"
+                          style={{ width: '100%', maxHeight: '400px', objectFit: 'contain' }}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <CircularProgress />
+                      )}
                     </Stack>
                   </DialogContent>
-                  <DialogActions>
-                    <Button onClick={handleDateFilter}>Filter</Button>
-                    <Button onClick={handleClearDate}>Clear</Button>
-                    <Button onClick={handleCloseFilterDialog}>Close</Button>
+
+                  {/* Dialog Actions (Buttons at the bottom) */}
+                  <DialogActions style={{ justifyContent: 'center' }}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      style={{ padding: '5px 15px', fontSize: '12px' }} // Smaller size
+                      onClick={() => addReplaceItem(child[0]?.parent_distribution_id)} // Access parent_distribution_id from child object
+                    >
+                      Approve
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      style={{ padding: '5px 15px', fontSize: '12px' }} // Smaller size
+                      onClick={handleCloseDialog} // Event handler for Cancel button
+                    >
+                      Cancel
+                    </Button>
                   </DialogActions>
                 </Dialog>
               </Table>
             </TableContainer>
           </Scrollbar>
-
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={filteredUsers.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
         </Card>
       </div>
     </>

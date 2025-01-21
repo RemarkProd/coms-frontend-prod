@@ -385,7 +385,7 @@ export default function Page404() {
   const submitRequisition = async () => {
     if (confirm('Are you sure for this requisition?')) {
       const requestBody = {
-        pHierarchyId: 1,
+        pHierarchyId: 3,
         pTransactionId: headerDetails.headerId,
         pTransactionNum: headerDetails.orderNumber.toString(),
         pAppsUsername: account.user_name,
@@ -394,6 +394,8 @@ export default function Page404() {
         pEmpid: 1,
         pNote: 'A',
         pAuthorizationStatus: headerDetails.authorizationStatus,
+        pCustGroupId: account.cust_group_id,
+        pTrxType: 'SO',
       };
       const response = await callSoApprovalService(requestBody);
 

@@ -38,12 +38,13 @@ import {
 import Dialog from '@mui/material/Dialog';
 import Select from 'react-select';
 import {
-  dowloadBankDepositReceiptService,
+  auditBrandingAssetService,
+  dowloadBrandingAssetService,
   getAreaService,
   getBeatsService,
   getBrandingAssetsChildItemsService,
-  getBrandingAssetsItemImagesService,
   getBrandingAssetsItemsService,
+  getBrandingAssetsShopPerItemImages,
   getRegionService,
   getShopsListService,
   getTerritoriesService,
@@ -125,6 +126,7 @@ export default function ItemsDashBoard() {
   const [selected, setSelected] = useState([]);
   const [selectedItem, setSelectedItem] = useState([]);
   const [account, setAccount] = useState({});
+  const [selectedShopId, setSelectedShopId] = useState(null);
 
   console.log(user);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -136,12 +138,29 @@ export default function ItemsDashBoard() {
   const handleNext = () => {
     setActivateIndex((prevIndex) => (prevIndex === images.length - 1 ? 0 : prevIndex + 1));
   };
+  const [itemPage, setItemPage] = useState(0);
+  const [childPage, setChildPage] = useState(0);
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
+  const handleChangeItemPage = (event, newPage) => {
+    setItemPage(newPage);
+  };
+  const handleChangeChildPage = (event, newPage) => {
+    setChildPage(newPage);
+  };
+
   const handleChangeRowsPerPage = (event) => {
-    setPage(0);
     setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0); // Reset to first page when rows per page changes
+  };
+  const handleChangeItemRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setItemPage(0); // Reset to first page when rows per page changes
+  };
+  const handleChangeChildRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setChildPage(0); // Reset to first page when rows per page changes
   };
 
   useEffect(() => {
@@ -411,104 +430,151 @@ export default function ItemsDashBoard() {
       console.error('Error fetching account details:', error);
     }
   };
-  const fetchDataForSpecificItem = async (specificElements) => {
-    try {
-      setChildItems([]);
-      setShowChilds(false);
+  const fetchDataForSpecificItem = async (shopId, inventoryItemId) => {
+    console.log('Fetching child data for:', inventoryItemId);
 
-      let response = {};
-      response = await getBrandingAssetsChildItemsService(user, specificElements);
-      console.log(response.data);
+    try {
+      setChildItems([]); // Clear existing data
+      setShowChilds(false); // Reset visibility of child items
+
+      const response = await getBrandingAssetsChildItemsService(user, inventoryItemId);
+      console.log('Child Data Response:', response.data);
+
       if (response.status === 200) {
-        setChildItems(response.data);
-        setShowChilds(true);
+        setChildItems(response.data); // Update child items
+        setShowChilds(true); // Show child items
       }
     } catch (error) {
-      console.error('Error fetching account details:', error);
+      console.error('Error fetching child data:', error);
     }
   };
 
-  const [imageSrc, setImageSrc] = useState([]);
-
+  // This function fetches the image using the filename and converts it to Base64
+  // eslint-disable-next-line consistent-return
   const viewAttachment = async (value) => {
-    console.log(value);
     try {
       const filename = value;
       const requestBody = { fileName: filename };
-      const response = await dowloadBankDepositReceiptService(user, requestBody);
+      const response = await dowloadBrandingAssetService(user, requestBody);
+
       if (response.status === 200) {
-        const base64String = btoa(
-          new Uint8Array(response.data).reduce((data, byte) => data + String.fromCharCode(byte), '')
-        );
-        const dataURL = `data:image/jpeg;base64,${base64String}`;
-        setImageSrc((prevImageSrc) => {
-          const updatedImages = [...prevImageSrc, dataURL];
-          if (updatedImages.length === response.data.length) {
-            setLoading(false); // All images have been processed, stop loading
-          }
-          return updatedImages;
-        });
+        console.log('Response Data:', response.data);
+        console.log('Response Type:', typeof response.data);
+
+        // Check if response.data is an ArrayBuffer
+        if (response.data instanceof ArrayBuffer) {
+          // Convert the ArrayBuffer data to Base64
+          const base64String = arrayBufferToBase64(response.data);
+          return `data:image/jpeg;base64,${base64String}`; // Return the image data URL
+        }
+        throw new Error('Response data is not an ArrayBuffer');
+      } else {
+        throw new Error(`Unexpected response status: ${response.status}`);
       }
     } catch (error) {
       console.error('Error during image download:', error);
-      setLoading(false); // Stop loading on error
+      throw error; // Optionally rethrow the error for higher-level handling
     }
   };
-  console.log(imageSrc);
 
-  const [images, setImages] = useState([]);
-  const fetchImageForSpecificItem = async (specificElements) => {
+  // Helper function to convert ArrayBuffer to Base64
+  const arrayBufferToBase64 = (buffer) => {
+    const binary = new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '');
+    return window.btoa(binary);
+  };
+
+  const [images, setImages] = useState([]); // This holds the image data (or any metadata about the images)
+  const [imageSrc, setImageSrc] = useState([]); // This will hold the actual image URLs or Base64 data
+
+  // Fetch images for specific item
+  const fetchImageForSpecificItem = async (shopId, inventoryItemId) => {
+    const requestBody = {
+      assetId: inventoryItemId,
+      shopId: shopId,
+    };
+
     try {
-      const response = await getBrandingAssetsItemImagesService(user, specificElements);
-      console.log(response.data);
+      const response = await getBrandingAssetsShopPerItemImages(user, requestBody);
+      console.log('Image Response:', response.data);
+
       if (response.status === 200 && response.data.length > 0) {
-        setImages(response.data);
-        response.data.forEach((image) => {
+        const imagesData = response.data;
+        console.log(imagesData);
+        setImages(imagesData);
+        // Ensure all images have correct URLs or Base64 strings for display
+        const imageSourcesPromises = imagesData.map(async (image) => {
           if (image.uploaded_filename) {
-            viewAttachment(image.uploaded_filename);
-          } else {
-            setImageSrc(['https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png']);
+            // If filename exists, fetch the image data (base64 or URL)
+            const base64Image = await viewAttachment(image.uploaded_filename); // Fetch the image data
+            return base64Image;
           }
+          // Fallback if image is not available
+          return 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png';
         });
+
+        // Wait for all image fetching promises to resolve
+        const resolvedImageSrc = await Promise.all(imageSourcesPromises);
+
+        // Update the image sources once all are fetched
+        setImageSrc(resolvedImageSrc);
       } else {
-        setNoImages(true);
+        setNoImages(true); // Indicate no images are available
       }
     } catch (error) {
       console.error('Error fetching images:', error);
     } finally {
-      setLoading(false);
+      setLoading(false); // Stop loading
     }
   };
-  console.log(images);
-  console.log(imageSrc);
 
   const handleClick = (event, name) => {
-    console.log(event);
-    console.log(event.target.checked);
     console.log(name);
+
+    setSelectedShopId(name);
+    // Fetch data for the selected shop
     fetchDataForSpecificShop(name);
+
+    // Update the selected shop
     setSelected([name]);
+
+    // Reset selected items and image display states
+    setSelectedItem([]); // Clear previously selected items
+    setImageSrc([]); // Clear any existing images
     setShowImage(false);
     setShowChilds(false);
-    console.log('toselectedUsers : ', selectedUsers);
+
+    console.log('to selectedUsers : ', selectedUsers);
   };
   const [showimage, setShowImage] = useState(false);
-  const handleItemClick = async (event, inventoryItemId) => {
-    // Clear the existing images and set loading state
+  const handleItemClick = async (event, shopId, inventoryItemId) => {
+    console.log('Selected Shop ID:', shopId);
+    console.log('Selected Inventory Item ID:', inventoryItemId);
+
+    // Clear states and set loading
+    setChildItems([]);
+    setImages([]);
     setImageSrc([]);
-    setLoading(true);
     setNoImages(false);
+    setLoading(true);
     setActivateIndex(0);
 
-    await fetchDataForSpecificItem(inventoryItemId);
-    await fetchImageForSpecificItem(inventoryItemId);
+    try {
+      // Fetch child data for the selected item
+      await fetchDataForSpecificItem(shopId, inventoryItemId);
 
-    console.log(inventoryItemId);
-    console.log(images);
+      // Fetch images for the selected item
+      await fetchImageForSpecificItem(shopId, inventoryItemId);
 
-    setSelectedItem([inventoryItemId]); // Only one item can be selected with radio button
-    setShowImage(true);
+      // Set the selected item
+      setSelectedItem([inventoryItemId]); // Only one item can be selected
+      setShowImage(true);
+    } catch (error) {
+      console.error('Error fetching data or images:', error);
+    } finally {
+      setLoading(false); // Ensure loading stops even if there's an error
+    }
   };
+
   const handleFilterByName = (event) => {
     setPage(0);
     setFilterName(event.target.value);
@@ -712,6 +778,38 @@ export default function ItemsDashBoard() {
     // marginBottom: '5px',
   };
 
+  const onApprove = async () => {
+    if (!images[0].distribution_id) {
+      alert('Please select an item!');
+    }
+    try {
+      const requestBody = {
+        pDistributionId: images[0].distribution_id,
+        pApprovalType: 'A',
+      };
+      const response = await auditBrandingAssetService(requestBody);
+      alert('Successfully approved!');
+    } catch (error) {
+      console.error('Error fetching account details:', error);
+    }
+  };
+
+  const onReject = async () => {
+    if (!images[0].distribution_id) {
+      alert('Please select an item!');
+    }
+    try {
+      const requestBody = {
+        pDistributionId: images[0].distribution_id,
+        pApprovalType: 'R',
+      };
+      const response = await auditBrandingAssetService(requestBody);
+      alert('Successfully rejected!');
+    } catch (error) {
+      console.error('Error fetching account details:', error);
+    }
+  };
+
   return (
     <>
       <Helmet>
@@ -846,7 +944,7 @@ export default function ItemsDashBoard() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={USERLIST.length}
+                  rowCount={filteredUsers.length} // Make sure to use filteredUsers here
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
@@ -855,7 +953,6 @@ export default function ItemsDashBoard() {
                   {showShops ? (
                     filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                       const { shop_id, shop_name, owner_name, contact_number, category } = row;
-
                       const selectedUser = selected.indexOf(shop_id) !== -1;
 
                       return (
@@ -899,15 +996,10 @@ export default function ItemsDashBoard() {
                   <TableBody>
                     <TableRow>
                       <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                        <Paper
-                          sx={{
-                            textAlign: 'center',
-                          }}
-                        >
+                        <Paper sx={{ textAlign: 'center' }}>
                           <Typography variant="h6" paragraph>
                             Not found
                           </Typography>
-
                           <Typography variant="body2">
                             No results found for &nbsp;
                             <strong>&quot;{filterName}&quot;</strong>.
@@ -919,10 +1011,11 @@ export default function ItemsDashBoard() {
                   </TableBody>
                 )}
               </Table>
+
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25]}
                 component="div"
-                count={USERLIST.length}
+                count={filteredUsers.length} // Make sure filteredUsers length is passed here
                 rowsPerPage={rowsPerPage}
                 page={page}
                 onPageChange={handleChangePage}
@@ -958,25 +1051,21 @@ export default function ItemsDashBoard() {
                 />
                 <TableBody>
                   {showItems ? (
-                    filteredItems.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                      const { inventory_item_id, item_category, item_name } = row;
-
-                      const selectedUser = selectedItem.includes(inventory_item_id);
+                    filteredItems.slice(itemPage * rowsPerPage, itemPage * rowsPerPage + rowsPerPage).map((row) => {
+                      const { inventory_item_id, item_name } = row;
+                      const isSelected = selectedItem.includes(inventory_item_id);
 
                       return (
                         <TableRow hover key={inventory_item_id} tabIndex={-1} role="radio">
                           <TableCell style={combinedStylingForRadioTableCell}>
                             <Radio
-                              checked={selectedUser}
-                              onChange={(event) => handleItemClick(event, inventory_item_id)}
+                              checked={isSelected}
+                              onChange={(event) => handleItemClick(event, selectedShopId, inventory_item_id)}
                             />
                           </TableCell>
                           <TableCell style={combinedStylingForTableCell} align="left">
                             {item_name}
                           </TableCell>
-                          {/* <TableCell style={combinedStylingForTableCell} align="left">
-                            {item_category}
-                          </TableCell> */}
                         </TableRow>
                       );
                     })
@@ -1024,9 +1113,9 @@ export default function ItemsDashBoard() {
               component="div"
               count={items.length}
               rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
+              itemPage={itemPage}
+              onPageChange={handleChangeItemPage}
+              onRowsPerPageChange={handleChangeItemRowsPerPage}
             />
             {/* <Button onClick={showChildsList}>Show Shops</Button> */}
           </div>
@@ -1079,52 +1168,49 @@ export default function ItemsDashBoard() {
                         <span className="visually-hidden">Next</span>
                       </button>
                     </div>
-                    {imageSrc.map((image, index) => {
-                      const record = images[index];
-
-                      return (
-                        <div key={index} className={`carousel-item${index === activateIndex ? ' active' : ''}`}>
-                          <div style={carouselContentStyle}>
-                            <div className="carousel-item active">
+                    {imageSrc.length > 0 ? (
+                      imageSrc.map((src, index) => {
+                        const record = images[index]; // Get the metadata from the images array
+                        console.log(record);
+                        return (
+                          <div key={index} className={`carousel-item${index === activateIndex ? ' active' : ''}`}>
+                            <div style={carouselContentStyle}>
                               <div>
-                                <div
-                                  style={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    justifyContent: 'flex-start',
-                                    alignItems: 'flex-start',
-                                  }}
-                                >
+                                <div style={{ display: 'flex', flexDirection: 'row' }}>
                                   <div style={{ width: '50%' }}>
-                                    {/* <h5>Reviews</h5> */}
                                     <table>
-                                      <th>
-                                        <td style={tdStyling}>Reviews</td>
-                                      </th>
-
-                                      <tr>
-                                        <td style={tdStyling}>Review Status: </td>
-                                        <td style={tdStyling}>{record.review_status}</td>
-                                      </tr>
-
-                                      <tr>
-                                        <td style={tdStyling}>Created By: </td>
-                                        <td style={tdStyling}>{record.created_by}</td>
-                                      </tr>
-
-                                      <tr>
-                                        <td style={tdStyling}>Created On: </td>
-                                        <td style={tdStyling}>
-                                          {record.creation_date
-                                            ? new Date(record.creation_date).toLocaleDateString()
-                                            : null}
-                                        </td>
-                                      </tr>
-
-                                      <tr>
-                                        <td style={tdStyling}>Remarks: </td>
-                                        <td style={tdStyling}>{record.remarks}</td>
-                                      </tr>
+                                      <thead>
+                                        <tr>
+                                          <th style={tdStyling} colSpan={2}>
+                                            Reviews
+                                          </th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        <tr>
+                                          <td style={tdStyling}>Review Status:</td>
+                                          <td style={tdStyling}>{record?.review_status ?? 'N/A'}</td>{' '}
+                                          {/* Use record here */}
+                                        </tr>
+                                        <tr>
+                                          <td style={tdStyling}>Created By:</td>
+                                          <td style={tdStyling}>{record?.created_by ?? 'N/A'}</td>{' '}
+                                          {/* Use record here */}
+                                        </tr>
+                                        <tr>
+                                          <td style={tdStyling}>Created On:</td>
+                                          <td style={tdStyling}>
+                                            {record?.creation_date
+                                              ? new Date(record.creation_date).toLocaleDateString()
+                                              : 'N/A'}
+                                          </td>{' '}
+                                          {/* Use record here */}
+                                        </tr>
+                                        <tr>
+                                          <td style={tdStyling}>Remarks:</td>
+                                          <td style={tdStyling}>{record?.remarks ?? 'N/A'}</td> {/* Use record here */}
+                                        </tr>
+                                      </tbody>
                                     </table>
                                   </div>
 
@@ -1137,22 +1223,33 @@ export default function ItemsDashBoard() {
                                         handleOpen();
                                       }
                                     }}
-                                    style={{ display: 'inline-block', cursor: 'pointer', width: '50%', height: '50%' }}
+                                    style={{
+                                      display: 'inline-block',
+                                      cursor: 'pointer',
+                                      width: '50%',
+                                      height: '50%',
+                                    }}
                                   >
-                                    <img
-                                      src={image}
-                                      className="card-img-top"
-                                      alt={`Slide ${index + 1}`}
-                                      style={{ height: '195px' }}
-                                    />
+                                    {src ? (
+                                      <img
+                                        src={src}
+                                        className="card-img-top"
+                                        alt={`Slide ${index + 1}`}
+                                        style={{ height: '195px' }}
+                                      />
+                                    ) : (
+                                      <p>Image not available</p>
+                                    )}
                                   </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })
+                    ) : (
+                      <div>Loading...</div>
+                    )}
                   </div>
                 </>
               )}
@@ -1185,7 +1282,7 @@ export default function ItemsDashBoard() {
                 />
                 <TableBody>
                   {showChilds ? (
-                    filteredChilds.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                    filteredChilds.slice(childPage * rowsPerPage, childPage * rowsPerPage + rowsPerPage).map((row) => {
                       const { inventory_item_id, description, inventory_item_code } = row;
 
                       const selectedUser = selected.indexOf(inventory_item_id) !== -1;
@@ -1246,13 +1343,22 @@ export default function ItemsDashBoard() {
             <TablePagination
               rowsPerPageOptions={[5, 10, 25]}
               component="div"
-              count={items.length}
+              count={childItems.length}
               rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
+              childPage={childPage}
+              onPageChange={handleChangeChildPage}
+              onRowsPerPageChange={handleChangeChildRowsPerPage}
             />
           </div>
+        </div>
+
+        <div style={{ textAlign: 'right', paddingRight: '1rem' }}>
+          <Button variant="contained" size="medium" style={{ marginRight: '1rem' }} onClick={onApprove}>
+            APPROVE
+          </Button>
+          <Button variant="contained" size="medium" onClick={onReject}>
+            REJECT
+          </Button>
         </div>
       </div>
 
@@ -1322,54 +1428,77 @@ export default function ItemsDashBoard() {
                         <span className="visually-hidden">Next</span>
                       </button>
                     </div>
-                    {imageSrc.map((image, index) => {
-                      const record = images[index];
+                    {imageSrc.map((src, index) => {
+                      const record = images[index]; // Get the metadata from the images array
+                      console.log(record);
 
                       return (
                         <div key={index} className={`carousel-item${index === activateIndex ? ' active' : ''}`}>
                           <div style={carouselContentStyle}>
-                            <div className="carousel-item active">
-                              <div>
-                                <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                  <div style={{ width: '50%' }}>
-                                    {/* <h5>Reviews</h5> */}
-                                    <table>
-                                      <th>
-                                        <td style={tdStyling}>Reviews</td>
-                                      </th>
-
+                            <div>
+                              <div style={{ display: 'flex', flexDirection: 'row' }}>
+                                <div style={{ width: '50%' }}>
+                                  <table>
+                                    <thead>
                                       <tr>
-                                        <td style={tdStyling}>Review Status: </td>
-                                        <td style={tdStyling}>{record.review_status}</td>
+                                        <th style={tdStyling} colSpan={2}>
+                                          Reviews
+                                        </th>
                                       </tr>
-
+                                    </thead>
+                                    <tbody>
                                       <tr>
-                                        <td style={tdStyling}>Created By: </td>
-                                        <td style={tdStyling}>{record.created_by}</td>
+                                        <td style={tdStyling}>Review Status:</td>
+                                        <td style={tdStyling}>{record?.review_status ?? 'N/A'}</td>{' '}
+                                        {/* Use record here */}
                                       </tr>
-
                                       <tr>
-                                        <td style={tdStyling}>Created On: </td>
+                                        <td style={tdStyling}>Created By:</td>
+                                        <td style={tdStyling}>{record?.created_by ?? 'N/A'}</td> {/* Use record here */}
+                                      </tr>
+                                      <tr>
+                                        <td style={tdStyling}>Created On:</td>
                                         <td style={tdStyling}>
-                                          {record.creation_date
+                                          {record?.creation_date
                                             ? new Date(record.creation_date).toLocaleDateString()
-                                            : null}
-                                        </td>
+                                            : 'N/A'}
+                                        </td>{' '}
+                                        {/* Use record here */}
                                       </tr>
-
                                       <tr>
-                                        <td style={tdStyling}>Remarks: </td>
-                                        <td style={tdStyling}>{record.remarks}</td>
+                                        <td style={tdStyling}>Remarks:</td>
+                                        <td style={tdStyling}>{record?.remarks ?? 'N/A'}</td> {/* Use record here */}
                                       </tr>
-                                    </table>
-                                  </div>
+                                    </tbody>
+                                  </table>
+                                </div>
 
-                                  <img
-                                    src={image}
-                                    className="card-img-top"
-                                    alt={`Slide ${index + 1}`}
-                                    style={{ height: '494px' }}
-                                  />
+                                <div
+                                  role="button"
+                                  tabIndex={0}
+                                  onClick={handleOpen}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      handleOpen();
+                                    }
+                                  }}
+                                  style={{
+                                    display: 'inline-block',
+                                    cursor: 'pointer',
+                                    width: '50%',
+                                    height: '50%',
+                                  }}
+                                >
+                                  {src ? (
+                                    <img
+                                      src={src}
+                                      className="card-img-top"
+                                      alt={`Slide ${index + 1}`}
+                                      style={{ height: '195px' }}
+                                    />
+                                  ) : (
+                                    <p>Image not available</p>
+                                  )}
                                 </div>
                               </div>
                             </div>

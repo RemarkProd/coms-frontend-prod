@@ -61,9 +61,30 @@ import AccountFormPage from './pages/AccountFormPage';
 import AddCustomerFromSapPage from './pages/AddCustomerFromSapPage';
 import AddShopItems from './pages/AddShopItems';
 import AddShopRoutesPage from './pages/AddShopRoutesPage';
+import SalesDetailsFromPosPage from './pages/BA Incentive Module/SalesDetailsFromPosPage';
+import AddIncentiveRecipientSlab from './pages/BA Incentive Module/SalesTarget/AddIncentiveAchievementSlab';
+import AddIncentiveConditions from './pages/BA Incentive Module/SalesTarget/AddIncentiveConditions';
+import AddIncentiveDistribution from './pages/BA Incentive Module/SalesTarget/AddIncentiveDistribution';
+import AddPageIncentiveFormula from './pages/BA Incentive Module/SalesTarget/AddIncentiveForm';
+import AddIncentiveRecipients from './pages/BA Incentive Module/SalesTarget/AddIncentiveRecipientGroups';
+import AddIncentiveTypes from './pages/BA Incentive Module/SalesTarget/AddIncentiveTypes';
+import AddSalesDetails from './pages/BA Incentive Module/SalesTarget/AddSalesDetailsAll';
+import AddSalesTarget from './pages/BA Incentive Module/SalesTarget/AddSalesTargets';
+import AddSalesTargetsSKUAll from './pages/BA Incentive Module/SalesTarget/AddSalesTargetsSKUAll';
+import ViewIncentiveAchievementSlabAll from './pages/BA Incentive Module/SalesTarget/ViewIncentiveAchievementSlabAll';
+import ViewIncentiveConditions from './pages/BA Incentive Module/SalesTarget/ViewIncentiveConditions';
+import ViewIncentiveDistributionAll from './pages/BA Incentive Module/SalesTarget/ViewIncentiveDistributionAll';
+import ViewIncentiveFormula from './pages/BA Incentive Module/SalesTarget/ViewIncentiveFormula';
+import ViewIncentiveRecipient from './pages/BA Incentive Module/SalesTarget/ViewIncentiveRecipientGroups';
+import ViewIncentiveTypes from './pages/BA Incentive Module/SalesTarget/ViewIncentiveTypes';
+import ViewSalesDetails from './pages/BA Incentive Module/SalesTarget/ViewSalesDetailsAll';
+import ViewSalesTarget from './pages/BA Incentive Module/SalesTarget/ViewSalesTargets';
+import ViewSalesTargetsSKUAll from './pages/BA Incentive Module/SalesTarget/ViewSalesTargetsSKUAll';
+import ViewSoSalesTargetIncentive from './pages/BA Incentive Module/SalesTarget/ViewSoSalesTargetIncentive';
 import BankFormPage from './pages/BankFormPage';
 import BrandingAssetsTrackingPage from './pages/BrandingAassetsTrackingPage';
 import BrandingAssetsViewPage from './pages/BrandingAssetsReportPage';
+import BrandingAssetsViewPageForHerlan from './pages/BrandingAssetsViewPageForHerlan';
 import CustomerManagementPage from './pages/CustomerManagementPage';
 import DepositEntryForm from './pages/DepositEntryForm';
 import ItemsDashBoard from './pages/ItemsDashBoard';
@@ -211,6 +232,27 @@ export default function Router() {
         { path: 'viewTerritoryInsights/:territory_id', element: <ViewTerritoryInsights /> },
         { path: 'viewTerritoryCompetitors', element: <viewTerritoryCompetitors /> },
         { path: 'monitorTerritory', element: <MonitorTerritoryPage /> },
+        { path: 'viewSalesTarget', element: <ViewSalesTarget /> },
+        { path: 'addSalesTarget', element: <AddSalesTarget /> },
+        { path: 'viewIncentiveFormula', element: <ViewIncentiveFormula /> },
+        { path: 'addIncentiveFormula', element: <AddPageIncentiveFormula /> },
+        { path: 'viewIncentiveRecipient', element: <ViewIncentiveRecipient /> },
+        { path: 'addIncentiveRecipient', element: <AddIncentiveRecipients /> },
+        { path: 'viewSalesTargetsSKUAll', element: <ViewSalesTargetsSKUAll /> },
+        { path: 'addSalesTargetsSKUAll', element: <AddSalesTargetsSKUAll /> },
+        { path: 'viewsosalestargetincentive', element: <ViewSoSalesTargetIncentive /> },
+        { path: 'viewsalesdetails', element: <ViewSalesDetails /> },
+        { path: 'addsalesdetails', element: <AddSalesDetails /> },
+        { path: 'viewincentivetypes', element: <ViewIncentiveTypes /> },
+        { path: 'viewincentivedistributionall', element: <ViewIncentiveDistributionAll /> },
+        { path: 'addincentivedistribution', element: <AddIncentiveDistribution /> },
+        { path: 'viewincentiveachievementslaball', element: <ViewIncentiveAchievementSlabAll /> },
+        { path: 'addIncentiveTypes', element: <AddIncentiveTypes /> },
+        { path: 'addIncentiveRecipientSlab', element: <AddIncentiveRecipientSlab /> },
+        { path: 'viewIncentiveConditions', element: <ViewIncentiveConditions /> },
+        { path: 'addIncentiveConditions', element: <AddIncentiveConditions /> },
+        { path: 'salesDetails/pos', element: <SalesDetailsFromPosPage /> },
+        { path: 'brandingAssets/herlan', element: <BrandingAssetsViewPageForHerlan /> },
       ],
     },
 
@@ -230,6 +272,7 @@ export default function Router() {
       path: 'sap',
       element: <TestSapApiPage />,
     },
+
     {
       path: 'vatSalesMaster',
       element: <VatposIntegrationService />,
