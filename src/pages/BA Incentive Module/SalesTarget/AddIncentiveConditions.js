@@ -12,10 +12,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { read, utils } from 'xlsx';
 import {
-    getAllCustomerService,
-    getAllIncentiveTypesService,
-    getUserProfileDetails,
-    postIncentiveConditionService,
+  getAllCustomerService,
+  getAllIncentiveTypesService,
+  getUserProfileDetails,
+  postIncentiveConditionService,
 } from '../../../Services/ApiServices';
 import { useUser } from '../../../context/UserContext';
 // styles

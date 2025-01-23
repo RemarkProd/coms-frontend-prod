@@ -39,7 +39,7 @@ import FndUserToollist from '../../../sections/@dashboard/user/fndUserToollist';
 // import { getLoggedInUserDetails, updateUserStatus } from '../Services/ApiServices';
 //  import { getUsersDetailsService } from '../Services/GetAllUsersDetails';
 import {
-  getAllIncentiveTypesService,
+  getAllIncentiveConditionsService,
   getUserProfileDetails,
   getUsers,
   postIncentiveDistributionService,
@@ -122,7 +122,7 @@ export default function ViewIncentiveDistributionAll() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await getAllIncentiveTypesService();
+        const response = await getAllIncentiveConditionsService();
         console.log(response.data);
 
         if (response) setRecipients(response.data);
@@ -134,6 +134,22 @@ export default function ViewIncentiveDistributionAll() {
     fetchData();
   }, []);
   console.log(recipients);
+
+  // useEffect(() => {
+  //   async function fetchData() {
+  //     try {
+  //       const response = await getAllIncentiveTypesService();
+  //       console.log(response.data);
+
+  //       if (response) setRecipients(response.data);
+  //     } catch (error) {
+  //       console.error('Error fetching account details:', error);
+  //     }
+  //   }
+
+  //   fetchData();
+  // }, []);
+  // console.log(recipients);
 
   const [filterDetails, setFilterDetails] = useState({});
   const [selectedOption, setSelectedOption] = useState(null);
@@ -463,7 +479,12 @@ export default function ViewIncentiveDistributionAll() {
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => {
-                    const { incentive_type_id, incentive_type, incentive_desc } = row;
+                    const {
+                      incentive_type_id,
+                      incentive_type_name,
+                      parent_incentive_type_id,
+                      parent_incentive_type_name,
+                    } = row;
                     const selectedUser = selected.indexOf(incentive_type_id) !== -1;
 
                     return (
@@ -472,8 +493,8 @@ export default function ViewIncentiveDistributionAll() {
                           <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, user_id)} />
                         </TableCell> */}
                         {/* <TableCell align="left">{incentive_type_id}</TableCell> */}
-                        <TableCell align="left">{incentive_type}</TableCell>
-                        <TableCell align="left">{incentive_desc}</TableCell>
+                        <TableCell align="left">{incentive_type_name}</TableCell>
+                        <TableCell align="left">{parent_incentive_type_name}</TableCell>
 
                         <Popover
                           open={Boolean(open)}

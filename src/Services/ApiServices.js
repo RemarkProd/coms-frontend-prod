@@ -2971,7 +2971,7 @@ export const getAllIncentiveTypesService = async () => {
 
 export const getAllIncentiveConditionsService = async () => {
   try {
-    return await axios.get(`${usersUrl}incentiveConditions/getAll`);
+    return await axios.get(`${usersUrl}incentiveConditions/`);
   } catch (err) {
     console.log(err.message);
 
@@ -3092,8 +3092,8 @@ export const addSalesDetailsFromPosService = async (requestBody) => {
 
 export const getSalesCountFromPosService = async (date) => {
   try {
-    const response = await axios.get(`http://182.160.114.100:9011/demo/api/app/GetSaleExportData/1/1/${date}`, {
-      headers: { Authorization: 'Mahatab:/gMaJikNGIw9vf6tO46emg==' },
+    const response = await axios.get(`http://182.160.114.100:9010/Herlan/api/app/GetSaleExportData/1/1/${date}`, {
+      headers: { Authorization: 'Amdadul:nv6Q6mddJIimkJEIv4Wvtw==' },
     });
 
     return response.data.COUNT;
@@ -3106,8 +3106,8 @@ export const getSalesCountFromPosService = async (date) => {
 
 export const getSalesDetailsFromPosMediasoftService = async (date, pageNo) => {
   try {
-    return await axios.get(`http://182.160.114.100:9011/demo/api/app/GetSaleExportData/${pageNo}/500/${date}`, {
-      headers: { Authorization: 'Mahatab:/gMaJikNGIw9vf6tO46emg==' },
+    return await axios.get(`http://182.160.114.100:9010/Herlan/api/app/GetSaleExportData/${pageNo}/500/${date}`, {
+      headers: { Authorization: 'Amdadul:nv6Q6mddJIimkJEIv4Wvtw==' },
     });
   } catch (err) {
     console.log(err.message);

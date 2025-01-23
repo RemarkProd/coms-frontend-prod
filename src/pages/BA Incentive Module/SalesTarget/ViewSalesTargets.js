@@ -9,6 +9,7 @@ import DialogContent from '@mui/material/DialogContent';
 import { filter } from 'lodash';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
+import { CSVLink } from 'react-csv';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { read, utils } from 'xlsx';
@@ -60,7 +61,7 @@ import { getFormattedDateWithTime } from '../../../hooks/GetFormattedDateWithTim
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'user_name', label: 'Username', alignRight: false },
+  { id: 'user_name', label: 'Customer Code', alignRight: false },
   { id: 'start_date', label: 'Start Date', alignRight: false },
   { id: 'end_date', label: 'End Date', alignRight: false },
   { id: 'amount', label: 'Amount', alignRight: false },
@@ -319,42 +320,85 @@ export default function ShowFndUser() {
   const handleOpenDialog = () => {
     setOpenUploadExcelDialog(true);
   };
+
+  // const parseDate = (dateString) => parse(dateString, 'dd/MM/yy', new Date());
+  function convertToFrontendDate(backendDateString) {
+    try {
+      const date = new Date(backendDateString);
+
+      // if (isNaN(date.getTime())) {
+      //   throw new Error('Invalid date');
+      // }
+      const day = date.toLocaleDateString('en-US', { weekday: 'short' });
+      const month = date.toLocaleDateString('en-US', { month: 'short' });
+      const dayOfMonth = date.getDate().toString().padStart(2, '0');
+      const year = date.getFullYear();
+      const time = date.toTimeString().split(' ')[0];
+      // const timezone = date.toTimeString().split(' ')[1];
+      const frontendDateString = `${day} ${month} ${dayOfMonth} ${year} ${time} `;
+
+      return frontendDateString;
+    } catch (error) {
+      console.error('Error while converting date:', error);
+      return null;
+    }
+  }
+  const excelDateToISO = (excelDate) => {
+    if (!excelDate || isNaN(excelDate)) return null; // Handle invalid or missing dates
+    const baseDate = new Date(1900, 0, 1); // January 1, 1900
+    const dateInMilliseconds = (excelDate - 2) * 24 * 60 * 60 * 1000; // Subtract 2 for Excel's date system quirk
+    const convertedDate = new Date(baseDate.getTime() + dateInMilliseconds);
+    return convertedDate.toISOString(); // Convert to ISO format
+  };
   const date = new Date();
   const saveExcelData = async () => {
     try {
-      if (exceldata && Array.isArray(exceldata)) {
-        for (const row of exceldata) {
-          const requestBody = {
-            lastUpdateDate: date,
-            lastUpdatedBy: account.user_id,
-            creationDate: date,
-            createdBy: account.user_id,
-            lastUpdateLogin: account.user_id,
-            custgroupid: row.cust_group_id,
-            custAccountId: row.cust_account_id,
-            startDate: date,
-            endDate: date,
-            amount: row.amount,
-          };
-          console.log(requestBody);
+      // Check if `exceldata` is valid
+      if (exceldata && Array.isArray(exceldata) && exceldata.length > 1) {
+        console.log('Excel Data:', exceldata);
 
-          try {
-            const postData = await postSalesTargetExcelDataService(requestBody);
+        // Skip headers and map data rows to the required format
+        const dataRows = exceldata.slice(1);
+        console.log(dataRows);
+        // Assuming first row contains headers
+        const formattedData = exceldata.map((row) => ({
+          cust_group_id: row.CustGroupId, // Map 'Customer Group ' to `cust_group_id`
+          cust_account_id: row.CustAccountId, // Map 'Customer Code' to `cust_account_id`
+          amount: row.Amount, // Map 'Target Amount' to `amount`
+          start_date: row.StartDate, // Convert `start_date` to string
+          end_date: row.EndDate, // Map 'End Date' to `end_date`
+        }));
 
-            if (postData.status === 200) {
-              console.log(`Row with emp_code ${row.emp_code} successfully added.`);
-            } else {
-              console.error(`Failed to save row with emp_code ${row.emp_code}`);
-            }
-          } catch (error) {
-            console.error(`Error saving row with emp_code ${row.emp_code}:`, error);
-          }
+        console.log('Formatted Data:', formattedData);
+
+        // Prepare the request body
+        const requestBody = {
+          rows: formattedData,
+          lastUpdatedBy: account.user_id,
+          createdBy: account.user_id,
+          lastUpdateLogin: account.user_id,
+        };
+
+        console.log('Request Body:', requestBody);
+
+        // Send the batch data to the backend
+        const response = await postSalesTargetExcelDataService(requestBody);
+
+        if (response.status === 200) {
+          console.log('All rows submitted successfully.');
+          alert('Submitted Successfully.');
+          window.location.reload();
+        } else {
+          console.error('Failed to save some rows.');
+          alert('Submission failed. Please try again.');
         }
+      } else {
+        console.error('No valid data found in the Excel file.');
+        alert('Invalid or empty Excel data.');
       }
-      alert('Submitted Successfully.');
-      window.location.reload();
     } catch (error) {
-      console.error('Error processing excel data:', error);
+      console.error('Error processing Excel data:', error);
+      alert('An error occurred while submitting data. Please try again.');
     }
   };
 
@@ -408,28 +452,6 @@ export default function ShowFndUser() {
       alert('Process failed! Please try again');
     }
   };
-
-  function convertToFrontendDate(backendDateString) {
-    try {
-      const date = new Date(backendDateString);
-
-      if (isNaN(date.getTime())) {
-        throw new Error('Invalid date');
-      }
-      const day = date.toLocaleDateString('en-US', { weekday: 'short' });
-      const month = date.toLocaleDateString('en-US', { month: 'short' });
-      const dayOfMonth = date.getDate().toString().padStart(2, '0');
-      const year = date.getFullYear();
-      const time = date.toTimeString().split(' ')[0];
-      // const timezone = date.toTimeString().split(' ')[1];
-      const frontendDateString = `${day} ${month} ${dayOfMonth} ${year} ${time}`;
-
-      return frontendDateString;
-    } catch (error) {
-      console.error('Error while converting date:', error);
-      return null;
-    }
-  }
 
   const handleDateFilter = async () => {
     let filteredData = salesTargetData;
@@ -500,11 +522,35 @@ export default function ShowFndUser() {
   const filteredUsers = applySortFilter(salesTargetData, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredUsers.length && !!filterName;
+  console.log(filteredUsers);
+
+  const exportData =
+    filteredUsers.length > 0
+      ? filteredUsers.map((item) => ({
+          CustAccountId: item.cust_account_id,
+          CustGroupId: item.cust_group_id,
+          StartDate: item.start_date,
+          EndDate: item.end_date,
+          Amount: item.amount,
+          // Add additional fields as needed
+        }))
+      : [
+          {
+            CustAccountId: '',
+            CustGroupId: '',
+            StartDate: '',
+            EndDate: '',
+            Amount: '',
+            // Ensure headers are included, but values are empty
+          },
+        ];
+
+  console.log('Export Data:', exportData);
 
   return (
     <>
       <Helmet>
-        <title> Users Table | COMS </title>
+        <title> Sales Targets Table | COMS </title>
       </Helmet>
 
       <Container className="indexing fullWidth">
@@ -513,7 +559,10 @@ export default function ShowFndUser() {
             Sales Targets
           </Typography>
           <div>
-            <Button
+            <CSVLink data={exportData} className="btn btn-success">
+              Export Table
+            </CSVLink>
+            {/* <Button
               variant="text"
               style={{ backgroundColor: 'lightgray', color: 'black', padding: '9px', marginRight: '10px' }}
               // color="primary"
@@ -521,7 +570,7 @@ export default function ShowFndUser() {
               onClick={submitUsers}
             >
               Submit
-            </Button>
+            </Button> */}
             {/* <Button
               variant="text"
               style={{ backgroundColor: 'lightgray', color: 'black', padding: '9px' }}
